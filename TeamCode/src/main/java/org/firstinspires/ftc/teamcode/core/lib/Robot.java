@@ -71,6 +71,14 @@ public class Robot {
      * Run the loop method from all subsystems
      */
     public void loop() {
+        gamepadManager.getDriver().whileButtonA()
+                .run(() -> {
+                    gamepadManager.getDriver().ledSetColorContinuous(1, 0, 0);
+                });
+        gamepadManager.getDriver().whileButtonY()
+                .run(() -> {
+                    gamepadManager.getDriver().ledSetColorContinuous(1, 1, 0);
+                });
         subsystems.forEach(subsystem -> subsystem.execute(gamepadManager));
         telemetry.update();
     }

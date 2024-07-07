@@ -31,4 +31,11 @@ public class SmartGamepad extends GamepadButton {
     public void rumbleStop() {
         gamepad.stopRumble();
     }
+    public void ledSetColorContinuous(double r, double g, double b){
+        gamepad.setLedColor(r, g, b, Gamepad.LED_DURATION_CONTINUOUS);
+    }
+    public void ledSetColor(double r, double g, double b, int durationMS){
+        gamepad.setLedColor(r, g, b, durationMS);
+    }
 }
+
