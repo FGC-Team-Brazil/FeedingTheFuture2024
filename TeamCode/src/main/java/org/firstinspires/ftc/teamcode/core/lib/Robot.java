@@ -7,6 +7,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.core.lib.gamepad.GamepadManager;
+import org.firstinspires.ftc.teamcode.core.lib.gamepad.SmartGamepad;
 import org.firstinspires.ftc.teamcode.core.lib.interfaces.Subsystem;
 import org.firstinspires.ftc.teamcode.robot.RobotSubsystems;
 
@@ -73,11 +74,19 @@ public class Robot {
     public void loop() {
         gamepadManager.getDriver().whileButtonA()
                 .run(() -> {
-                    gamepadManager.getDriver().ledSetColorContinuous(1, 0, 0);
+                    gamepadManager.getDriver().ledSetColorContinuous(SmartGamepad.Color.WHITE);
                 });
         gamepadManager.getDriver().whileButtonY()
                 .run(() -> {
-                    gamepadManager.getDriver().ledSetColorContinuous(1, 1, 0);
+                    gamepadManager.getDriver().ledSetColorContinuous(SmartGamepad.Color.RED);
+                });
+        gamepadManager.getDriver().whileButtonX()
+                .run(() -> {
+                    gamepadManager.getDriver().ledSetColor(SmartGamepad.Color.GREEN, 5000);
+                });
+        gamepadManager.getDriver().whileButtonB()
+                .run(() -> {
+                    gamepadManager.getDriver().ledSetColor(SmartGamepad.Color.BLUE, 3000);
                 });
         subsystems.forEach(subsystem -> subsystem.execute(gamepadManager));
         telemetry.update();
