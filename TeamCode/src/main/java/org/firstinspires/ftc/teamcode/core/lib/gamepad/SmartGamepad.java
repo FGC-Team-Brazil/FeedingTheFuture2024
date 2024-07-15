@@ -74,5 +74,13 @@ public class SmartGamepad extends GamepadButton {
 
         return new double[]{r, g, b};
     }
-}
+    public void ledSetRainbow(int durationMs){
+        Gamepad.LedEffect rgbEffect = new Gamepad.LedEffect.Builder()
+                .addStep(1, 0, 0, durationMs)
+                .addStep(0, 1, 0, durationMs)
+                .addStep(0, 0, 1, durationMs)
+                .addStep(1, 1, 1, durationMs)
+                .build();
+        gamepad.runLedEffect(rgbEffect);
+}}
 

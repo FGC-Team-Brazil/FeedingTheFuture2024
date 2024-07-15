@@ -88,6 +88,9 @@ public class Robot {
                 .run(() -> {
                     gamepadManager.getDriver().ledSetColor(SmartGamepad.Color.BLUE, 3000);
                 });
+        if (gamepadManager.getDriver().getLeftStickY() == 1){
+            gamepadManager.getDriver().ledSetRainbow(2000);
+        }
         subsystems.forEach(subsystem -> subsystem.execute(gamepadManager));
         telemetry.update();
     }
