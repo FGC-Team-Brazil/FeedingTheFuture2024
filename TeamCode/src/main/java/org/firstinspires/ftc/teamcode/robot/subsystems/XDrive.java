@@ -73,9 +73,9 @@ public class XDrive implements Subsystem {
     }
 
     public void drive(SmartGamepad driver) {
-        double Protate = driver.getRightStickX()/4;
-        double stick_x = driver.getLeftStickX() * Math.sqrt(Math.pow(1-Math.abs(Protate), 2)/2);
-        double stick_y = driver.getLeftStickY() * Math.sqrt(Math.pow(1-Math.abs(Protate), 2)/2);
+        double rotate = driver.getRightStickX()/4;
+        double stick_x = driver.getLeftStickX() * Math.sqrt(Math.pow(1-Math.abs(rotate), 2)/2);
+        double stick_y = driver.getLeftStickY() * Math.sqrt(Math.pow(1-Math.abs(rotate), 2)/2);
         double theta = 0;
         double Px = 0;
         double Py = 0;
@@ -116,15 +116,15 @@ public class XDrive implements Subsystem {
         telemetry.addData("Stick_X", stick_x);
         telemetry.addData("Stick_Y", stick_y);
         telemetry.addData("Magnitude",  Math.sqrt(Math.pow(stick_x, 2) + Math.pow(stick_y, 2)));
-        telemetry.addData("Front Left", Py - Protate);
-        telemetry.addData("Back Left", Px - Protate);
-        telemetry.addData("Back Right", Py + Protate);
-        telemetry.addData("Front Right", Px + Protate);
+        telemetry.addData("Front Left", Py - rotate);
+        telemetry.addData("Back Left", Px - rotate);
+        telemetry.addData("Back Right", Py + rotate);
+        telemetry.addData("Front Right", Px + rotate);
 
-        front_left.setPower(Py - Protate);
-        back_left.setPower(Px - Protate);
-        back_right.setPower(Py + Protate);
-        front_right.setPower(Px + Protate);
+        front_left.setPower(Py - rotate);
+        back_left.setPower(Px - rotate);
+        back_right.setPower(Py + rotate);
+        front_right.setPower(Px + rotate);
     }
 
     public void resetAngle(SmartGamepad driver){
