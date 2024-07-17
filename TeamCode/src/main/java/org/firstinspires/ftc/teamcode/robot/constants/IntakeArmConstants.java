@@ -1,9 +1,9 @@
 package org.firstinspires.ftc.teamcode.robot.constants;
 
-public class IntakeArmyConstants {
+public class IntakeArmConstants {
 
-    public static final String INTAKE_MOTOR_LEFT = "IntakeArmy_intakeMotorLeft";
-    public static final String INTAKE_MOTOR_RIGHT = "IntakeArmy_intakeMotorRight";
+    public static final String INTAKE_MOTOR_LEFT = "IntakeArm_intakeMotorLeft";
+    public static final String INTAKE_MOTOR_RIGHT = "IntakeArm_intakeMotorRight";
     public static final String ANGLE_MOTOR = "IntakeArmy_angleMotor";
     public static final int TARGET_DEGREE = 110;
 

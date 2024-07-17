@@ -9,7 +9,7 @@ import com.qualcomm.robotcore.hardware.TouchSensor;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 import static org.firstinspires.ftc.teamcode.core.lib.pid.PIDController.Mode.ANGLE;
-import static org.firstinspires.ftc.teamcode.robot.constants.IntakeArmyConstants.*;
+import static org.firstinspires.ftc.teamcode.robot.constants.IntakeArmConstants.*;
 import static org.firstinspires.ftc.teamcode.robot.constants.GlobalConstants.*;
 
 import org.firstinspires.ftc.teamcode.core.lib.gamepad.GamepadManager;
@@ -26,8 +26,8 @@ import java.util.Map;
  * Example subsystem that implements the FGCLib.
  * Look at the example to build your own subsystems
  */
-public class IntakeArmy implements Subsystem {
-    private static IntakeArmy instance;
+public class IntakeArm implements Subsystem {
+    private static IntakeArm instance;
     private Telemetry telemetry;
     private CRServo intakeMotorLeft;
     private CRServo intakeMotorRight;
@@ -37,7 +37,7 @@ public class IntakeArmy implements Subsystem {
     Map<String ,Double> angles = new HashMap<>();
 
 
-    private IntakeArmy() {
+    private IntakeArm() {
     }
 
     /**
@@ -62,7 +62,7 @@ public class IntakeArmy implements Subsystem {
         angles.put("Posicao 3",100.0);
 
 
-        telemetry.addData("IntakeArmy Subsystem", "Initialized");
+        telemetry.addData("IntakeArm Subsystem", "Initialized");
     }
 
     /**
@@ -73,7 +73,7 @@ public class IntakeArmy implements Subsystem {
     public void execute(GamepadManager gamepadManager) {
         operator = gamepadManager.getOperator();
 
-        telemetry.addData("IntakeArmy Subsystem", "Running");
+        telemetry.addData("IntakeArm Subsystem", "Running");
 
         PIDController.calculate(TARGET_DEGREE, angleMotor.getCurrentPosition());
 
@@ -150,11 +150,11 @@ public class IntakeArmy implements Subsystem {
      * It's not good to have many objects of the same subsystem, so every
      * subsystem in FGCLib will have just one instance, that is created
      * with the getInstance method
-     * @return IntakeArmy SingleTon
+     * @return IntakeArm SingleTon
      */
-    public static synchronized IntakeArmy getInstance() {
+    public static synchronized IntakeArm getInstance() {
         if (instance == null) {
-            instance = new IntakeArmy();
+            instance = new IntakeArm();
         }
         return instance;
     }
