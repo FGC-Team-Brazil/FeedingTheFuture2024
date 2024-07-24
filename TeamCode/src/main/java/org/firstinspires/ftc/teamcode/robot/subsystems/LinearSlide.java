@@ -83,21 +83,21 @@ public class LinearSlide implements Subsystem {
 
 
 
-        operator.whileRightTriggerPressed()
+        operator.whileButtonDPadUp()
                 .run(() -> {
                     PIDController.calculate(linearPidPositions.get("Pontua Nexus Baixo"),linearMotorLeft.getCurrentPosition());
                 }, () -> {
                     PIDController.calculate(linearPidPositions.get("Pontua Nexus Baixo"),linearMotorRight.getCurrentPosition());
                 });
 
-        operator.whileRightTriggerPressed()
+        operator.whileButtonDPadDown()
                 .run(() -> {
                     PIDController.calculate(linearPidPositions.get("Pontua Nexus Medio"),linearMotorLeft.getCurrentPosition());
                 }, () -> {
                     PIDController.calculate(linearPidPositions.get("Pontua Nexus Medio"),linearMotorRight.getCurrentPosition());
                 });
 
-        operator.whileRightTriggerPressed()
+        operator.whileButtonDPadRight()
                 .run(() -> {
                     PIDController.calculate(linearPidPositions.get("Pontua Nexus Alto"),linearMotorLeft.getCurrentPosition());
                 }, () -> {
