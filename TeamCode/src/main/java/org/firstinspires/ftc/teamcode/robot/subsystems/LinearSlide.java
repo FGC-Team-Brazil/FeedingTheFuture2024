@@ -68,41 +68,26 @@ public class LinearSlide implements Subsystem {
     public void execute(GamepadManager gamepadManager) {
         operator = gamepadManager.getOperator();
 
-        telemetry.addData("IntakeArm Subsystem", "Running");
+        telemetry.addData("LinearSlide Subsystem", "Running");
 
-
-        operator.whileButtonLeftBumper()
-                .run(() -> {
-                    linearSlideMotors(-0.5);
-                });
-
-        operator.whileButtonRightBumper()
-                .run(() -> {
-                    linearSlideMotors(0.5);
-                });
-
-
+        controlLinearSlide();
 
         operator.whileButtonDPadUp()
                 .run(() -> {
-                    PIDController.calculate(linearPidPositions.get("Pontua Nexus Baixo"),linearMotorLeft.getCurrentPosition());
-                }, () -> {
-                    PIDController.calculate(linearPidPositions.get("Pontua Nexus Baixo"),linearMotorRight.getCurrentPosition());
+              linearSlideMotors(PIDController.calculate(linearPidPositions.get("Pontua Nexus Baixo"),linearMotorLeft.getCurrentPosition()));
                 });
 
         operator.whileButtonDPadDown()
                 .run(() -> {
-                    PIDController.calculate(linearPidPositions.get("Pontua Nexus Medio"),linearMotorLeft.getCurrentPosition());
-                }, () -> {
-                    PIDController.calculate(linearPidPositions.get("Pontua Nexus Medio"),linearMotorRight.getCurrentPosition());
+                    linearSlideMotors(PIDController.calculate(linearPidPositions.get("Pontua Nexus Medio"),linearMotorLeft.getCurrentPosition()));
                 });
 
         operator.whileButtonDPadRight()
                 .run(() -> {
-                    PIDController.calculate(linearPidPositions.get("Pontua Nexus Alto"),linearMotorLeft.getCurrentPosition());
-                }, () -> {
-                    PIDController.calculate(linearPidPositions.get("Pontua Nexus Alto"),linearMotorRight.getCurrentPosition());
+                    linearSlideMotors(PIDController.calculate(linearPidPositions.get("Pontua Nexus Alto"),linearMotorLeft.getCurrentPosition()));
                 });
+
+
 
 
         stop();
@@ -125,10 +110,6 @@ public class LinearSlide implements Subsystem {
         linearMotorLeft.setPower(0);
     }
 
-    private void resetEncoder(DcMotor motor) {
-        motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-    }
 
     private void linearSlideMotors(double speed){
         linearMotorRight.setPower(speed);
@@ -136,8 +117,12 @@ public class LinearSlide implements Subsystem {
     }
 
 
-    private void rpmLinearSlide(){
-
+    private void controlLinearSlide(){
+        if(operator.getLeftStickY()<0){
+            linearSlideMotors(0);
+        }else{
+            linearSlideMotors(operator.getLeftStickY());
+        }
     }
 
 
