@@ -57,9 +57,9 @@ public class LinearSlide implements Subsystem {
         PIDController = new PIDController(PID.kP, PID.kI, PID.kD, PID.kF, POSITION);
         PIDController.setTolerance(100);
 
-        linearPidPositions.put("Baixo",1000.0);
-        linearPidPositions.put("Medio",1500.0);
-        linearPidPositions.put("Alto", 1000.0);
+        linearPidPositions.put("Baixo",5712.0);
+        linearPidPositions.put("Medio",7140.0);
+        linearPidPositions.put("Alto", 8568.0);
 
         telemetry.addData("LinearSlide Subsystem", "Initialized");
     }
