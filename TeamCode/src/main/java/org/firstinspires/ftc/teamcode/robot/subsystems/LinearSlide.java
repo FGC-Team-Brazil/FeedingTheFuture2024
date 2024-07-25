@@ -7,6 +7,7 @@ import com.qualcomm.robotcore.hardware.TouchSensor;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 import static org.firstinspires.ftc.teamcode.core.lib.pid.PIDController.Mode.ANGLE;
+import static org.firstinspires.ftc.teamcode.core.lib.pid.PIDController.Mode.POSITION;
 import static org.firstinspires.ftc.teamcode.robot.constants.LinearSlideConstants.*;
 import static org.firstinspires.ftc.teamcode.robot.constants.GlobalConstants.*;
 
@@ -44,6 +45,8 @@ public class LinearSlide implements Subsystem {
     public void initialize(HardwareMap hardwareMap, Telemetry telemetry) {
         linearMotorRight = hardwareMap.get(DcMotor.class, LINEAR_MOTOR_RIGHT);
         linearMotorLeft = hardwareMap.get(DcMotor.class, LINEAR_MOTOR_LEFT);
+        linearMotorLeft.setDirection(DcMotor.Direction.REVERSE);
+        linearMotorRight.setDirection(DcMotor.Direction.FORWARD);
         this.telemetry = telemetry;
 
         linearMotorLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -51,11 +54,12 @@ public class LinearSlide implements Subsystem {
         linearMotorLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         linearMotorRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
-        PIDController = new PIDController(PID.kP, PID.kI, PID.kD, PID.kF, ANGLE);
+        PIDController = new PIDController(PID.kP, PID.kI, PID.kD, PID.kF, POSITION);
+        PIDController.setTolerance(100);
 
-        linearPidPositions.put("Pontua Nexus Baixo",50.0);
-        linearPidPositions.put("Pontua Nexus Medio",100.0);
-        linearPidPositions.put("Pontua Nexus Alto", 150.0);
+        linearPidPositions.put("Pontua Nexus Baixo",20.0);
+        linearPidPositions.put("Pontua Nexus Medio",3.0);
+        linearPidPositions.put("Pontua Nexus Alto", 4.0);
 
         telemetry.addData("LinearSlide Subsystem", "Initialized");
     }
@@ -74,7 +78,7 @@ public class LinearSlide implements Subsystem {
 
         operator.whileButtonDPadUp()
                 .run(() -> {
-              linearSlideMotors(PIDController.calculate(linearPidPositions.get("Pontua Nexus Baixo"),linearMotorLeft.getCurrentPosition()));
+              linearSlideMotors(PIDController.calculate(-4100, linearMotorLeft.getCurrentPosition()));
                 });
 
         operator.whileButtonDPadDown()
@@ -87,8 +91,13 @@ public class LinearSlide implements Subsystem {
                     linearSlideMotors(PIDController.calculate(linearPidPositions.get("Pontua Nexus Alto"),linearMotorLeft.getCurrentPosition()));
                 });
 
+        telemetry.addData("MR power", linearMotorRight.getPower());
+        telemetry.addData("ML power", linearMotorLeft.getPower());
 
+        telemetry.addData("MR position", linearMotorLeft.getCurrentPosition());
+        telemetry.addData("ML position", linearMotorLeft.getCurrentPosition());
 
+        telemetry.addData("PIDcalculate", PIDController.calculate(-4100, linearMotorLeft.getCurrentPosition()));
 
         stop();
     }
@@ -118,11 +127,7 @@ public class LinearSlide implements Subsystem {
 
 
     private void controlLinearSlide(){
-        if(operator.getLeftStickY()<0){
-            linearSlideMotors(0);
-        }else{
             linearSlideMotors(operator.getLeftStickY());
-        }
     }
 
 
