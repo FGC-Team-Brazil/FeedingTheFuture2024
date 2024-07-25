@@ -57,9 +57,9 @@ public class LinearSlide implements Subsystem {
         PIDController = new PIDController(PID.kP, PID.kI, PID.kD, PID.kF, POSITION);
         PIDController.setTolerance(100);
 
-        linearPidPositions.put("Pontua Nexus Baixo",20.0);
-        linearPidPositions.put("Pontua Nexus Medio",3.0);
-        linearPidPositions.put("Pontua Nexus Alto", 4.0);
+        linearPidPositions.put("Baixo",1000.0);
+        linearPidPositions.put("Medio",1500.0);
+        linearPidPositions.put("Alto", 1000.0);
 
         telemetry.addData("LinearSlide Subsystem", "Initialized");
     }
@@ -76,19 +76,22 @@ public class LinearSlide implements Subsystem {
 
         controlLinearSlide();
 
+        //Mantem posição após o operador soltar o botão
+        linearSlideMotors(PIDController.calculate(linearMotorLeft.getCurrentPosition(),linearMotorLeft.getCurrentPosition()));
+
         operator.whileButtonDPadUp()
                 .run(() -> {
-              linearSlideMotors(PIDController.calculate(-4100, linearMotorLeft.getCurrentPosition()));
+              linearSlideMotors(PIDController.calculate(linearPidPositions.get("Baixo"), linearMotorLeft.getCurrentPosition()));
                 });
 
         operator.whileButtonDPadDown()
                 .run(() -> {
-                    linearSlideMotors(PIDController.calculate(linearPidPositions.get("Pontua Nexus Medio"),linearMotorLeft.getCurrentPosition()));
+                    linearSlideMotors(PIDController.calculate(linearPidPositions.get("Medio"),linearMotorLeft.getCurrentPosition()));
                 });
 
         operator.whileButtonDPadRight()
                 .run(() -> {
-                    linearSlideMotors(PIDController.calculate(linearPidPositions.get("Pontua Nexus Alto"),linearMotorLeft.getCurrentPosition()));
+                    linearSlideMotors(PIDController.calculate(linearPidPositions.get("Alto"),linearMotorLeft.getCurrentPosition()));
                 });
 
         telemetry.addData("MR power", linearMotorRight.getPower());
