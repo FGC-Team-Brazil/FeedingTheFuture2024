@@ -64,36 +64,36 @@ public class WebcamAprilTags implements Subsystem {
                     switch (detection.id) {
                         //tem que ajustar os numeros para corresponder a arena
                         case 100:
-                            xtag = 63;
-                            ytag = 41.5;
+                            xtag = 0;
+                            ytag = 0;
                             break;
                         case 101:
-                            xtag = 63;
-                            ytag = 35.5;
+                            xtag = 0;
+                            ytag = 0;
                             break;
                         case 102:
-                            xtag = 63;
-                            ytag = 29.5;
+                            xtag = 0;
+                            ytag = 0;
                             break;
                         case 103:
-                            xtag = 63;
-                            ytag = -29.5;
+                            xtag = 0;
+                            ytag = 0;
                             break;
                         case 104:
-                            xtag = 63;
-                            ytag = -35.5;
+                            xtag = 0;
+                            ytag = 0;
                             break;
                         case 105:
-                            xtag = 63;
-                            ytag = -41.5;
+                            xtag = 0;
+                            ytag = 0;
                             break;
                         case 106:
-                            xtag = 63;
-                            ytag = -41.5;
+                            xtag = 0;
+                            ytag = 0;
                             break;
                         case 107:
-                            xtag = 63;
-                            ytag = -41.5;
+                            xtag = 0;
+                            ytag = 0;
                             break;
                     }
                     actualHead = -(detection.ftcPose.yaw - detection.ftcPose.bearing);
