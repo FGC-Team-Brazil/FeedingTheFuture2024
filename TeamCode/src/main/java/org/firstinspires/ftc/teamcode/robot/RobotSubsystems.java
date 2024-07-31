@@ -4,6 +4,7 @@ import org.firstinspires.ftc.teamcode.core.lib.builders.DrivetrainBuilder;
 import org.firstinspires.ftc.teamcode.core.lib.interfaces.Subsystem;
 import org.firstinspires.ftc.teamcode.robot.constants.DrivetrainBuilderConstants;
 import org.firstinspires.ftc.teamcode.robot.constants.XDriveConstants;
+import org.firstinspires.ftc.teamcode.robot.subsystems.WebcamAprilTags;
 import org.firstinspires.ftc.teamcode.robot.subsystems.XDrive;
 
 import java.util.Arrays;
@@ -17,6 +18,7 @@ import java.util.List;
 public class RobotSubsystems {
     private static final Subsystem[] subsystems = {
             XDrive.getInstance(),
+            WebcamAprilTags.getInstance()
             // Add more subsystems here
     };
 

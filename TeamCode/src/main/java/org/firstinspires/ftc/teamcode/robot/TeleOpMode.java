@@ -4,6 +4,8 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.core.lib.Robot;
+import org.firstinspires.ftc.teamcode.core.lib.autonomousControl.Pose2d;
+import org.firstinspires.ftc.teamcode.robot.subsystems.XDrive;
 
 /**
  * TeleOp class template for building TeleOp modes.
@@ -38,6 +40,8 @@ public class TeleOpMode extends OpMode {
     @Override
     public void loop() {
         robot.loop();
+        Pose2d currentPose = XDrive.getInstance().getCurrentPose();
+        telemetry.addLine("X Position: "+currentPose.getX()+" | Y Position: "+currentPose.getY()+" | Heading: "+currentPose.getHeadingDegrees());
     }
 
     /**

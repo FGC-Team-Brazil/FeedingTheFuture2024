@@ -25,9 +25,7 @@ import org.firstinspires.ftc.teamcode.core.lib.interfaces.Subsystem;
 import org.firstinspires.ftc.teamcode.core.lib.pid.PIDController;
 import org.firstinspires.ftc.teamcode.robot.constants.AutonomousConstants;
 
-
 public class XDrive implements Subsystem {
-
     private  Telemetry telemetry;
     private static XDrive instance;
     private double reset_angle = 0;
@@ -222,6 +220,7 @@ public class XDrive implements Subsystem {
     public Pose2d getCurrentPose(){
         return currentPose;
     }
+    public void setCurrentPose(Pose2d NewPose){currentPose = NewPose;}
 
     public  void relativeOdometryUpdate(double elapsedSeconds) {
         double dtheta;
