@@ -101,16 +101,17 @@ public class WebcamAprilTags implements Subsystem {
                     xtrans = Math.cos(Math.toRadians(actualHead)) * detection.ftcPose.range * pos;
 
 
-                    //telemetry.addLine(String.format("\n==== (ID %d) %s", detection.id, detection.metadata.name));
-                    //telemetry.addLine(String.format("Xtrans %6.1f Ytrans %6.1f",xtrans,ytrans));
-                    //telemetry.addLine(String.format("CAM FIELD XY %6.1f %6.1f", xtag - xtrans, ytag - ytrans, detection.ftcPose.bearing));
+
+                    telemetry.addLine(String.format("\n==== (ID %d) %s", detection.id, detection.metadata.name));
+                    telemetry.addLine(String.format("Xtrans %6.1f Ytrans %6.1f",xtrans,ytrans));
+                    telemetry.addLine(String.format("CAM FIELD XY %6.1f %6.1f", xtag - xtrans, ytag - ytrans));
                     //telemetry.addLine(String.format("BOT FIELD XY HEAD %6.1f %6.1f %6.1f",
                             //(xtag - xtrans) - (Math.cos(Math.toRadians(-detection.ftcPose.yaw)) * CAM_DIST_TO_CENTER),
                             //(ytag - ytrans) - (Math.sin(Math.toRadians(-detection.ftcPose.yaw)) * CAM_DIST_TO_CENTER),
                             //detection.ftcPose.yaw));
                     //telemetry.addLine(String.format("XYZ %6.1f %6.1f %6.1f  (inch)", detection.ftcPose.x, detection.ftcPose.y, detection.ftcPose.z));
                     //telemetry.addLine(String.format("PRY %6.1f %6.1f %6.1f  (deg)", detection.ftcPose.pitch, detection.ftcPose.roll, detection.ftcPose.yaw));
-                    //telemetry.addLine(String.format("RBE %6.1f %6.1f %6.1f  (inch, deg, deg)", detection.ftcPose.range, detection.ftcPose.bearing, detection.ftcPose.elevation));
+                    telemetry.addLine(String.format("RBE %6.1f %6.1f %6.1f  (mm, deg, deg)", detection.ftcPose.range, detection.ftcPose.bearing, detection.ftcPose.elevation));
 
 
                     avgX += (xtag - xtrans) - (Math.cos(Math.toRadians(-detection.ftcPose.yaw)) * CAM_DIST_TO_CENTER);
@@ -126,6 +127,7 @@ public class WebcamAprilTags implements Subsystem {
             //telemetry.addLine("\nkey:\nXYZ = X (Right), Y (Forward), Z (Up) dist.");
             //telemetry.addLine("PRY = Pitch, Roll & Yaw (XYZ Rotation)");
             //telemetry.addLine("RBE = Range, Bearing & Elevation");
+            XDrive.getInstance().setCurrentPose(new Pose2d(avgX,avgY,Math.toRadians(avgHead)));
             return new Pose2d(avgX,avgY,Math.toRadians(avgHead));
         } else{
             return XDrive.getInstance().getCurrentPose();
@@ -167,7 +169,6 @@ public class WebcamAprilTags implements Subsystem {
     @Override
     public void execute(GamepadManager gamepadManager) {
         Pose2d detectedPose = LocateWithAprilTag();
-        XDrive.getInstance().setCurrentPose(detectedPose);
     }
     public static WebcamAprilTags getInstance() {
         if (instance == null) {
