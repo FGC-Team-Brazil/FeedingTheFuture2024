@@ -184,7 +184,7 @@ public class XDrive implements Subsystem {
 
     public void controlBasedOnVelocity(@NonNull TargetVelocityData movementState, double elapsedTime){
 
-        relativeOdometryUpdate(elapsedTime);
+        relativeOdometryUpdate();
 
         desiredVX += (movementState.getXV()-currVX)*elapsedTime*(AutonomousConstants.MAXACCELERATION/AutonomousConstants.MAXSPEED);
         desiredVY += (movementState.getYV()-currVY)*elapsedTime*(AutonomousConstants.MAXACCELERATION/AutonomousConstants.MAXSPEED);
@@ -222,7 +222,7 @@ public class XDrive implements Subsystem {
     }
     public void setCurrentPose(Pose2d NewPose){currentPose = NewPose;}
 
-    public  void relativeOdometryUpdate(double elapsedSeconds) {
+    public  void relativeOdometryUpdate() {
         double dtheta;
         Pose2d robotPoseDelta = wheelToRobotVelocities();
 
@@ -241,7 +241,7 @@ public class XDrive implements Subsystem {
         //double cosTerm = Math.cos(dtheta);
         //Vector2d fieldPositionDelta = new Vector2d(sineTerm * robotPoseDelta.getX() - cosTerm * robotPoseDelta.getY(), cosTerm * robotPoseDelta.getX() + sineTerm * robotPoseDelta.getY()); probably closer to this
 
-        Pose2d fieldPoseDelta = new Pose2d(currentPose.getX()+ botXComponentRelativeToField*elapsedSeconds,currentPose.getY()+botYComponentRelativeToField*elapsedSeconds,
+        Pose2d fieldPoseDelta = new Pose2d(botXComponentRelativeToField,botYComponentRelativeToField,
                 robotPoseDelta.getHeadingDegrees());
         currentPose.updatePose(
                 currentPose.getX() + fieldPoseDelta.getX(),

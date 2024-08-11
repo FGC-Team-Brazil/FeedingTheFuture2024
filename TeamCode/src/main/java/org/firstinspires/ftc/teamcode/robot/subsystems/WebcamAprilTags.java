@@ -17,6 +17,7 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagLibrary;
 import org.firstinspires.ftc.vision.apriltag.AprilTagLibrary.Builder;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
+import org.openftc.easyopencv.OpenCvInternalCamera;
 
 import java.util.List;
 
@@ -26,6 +27,8 @@ public class WebcamAprilTags implements Subsystem {
     private static AprilTagProcessor aprilTag;
     static double CAM_DIST_TO_CENTER = 0;
     // distancia da camera até o centro do robo
+    static double CAM_ANGLE_TO_GROUND =0;
+    //angulação da câmera (0º = paralelo ao chão, 90° = olhando para cima)
     static double actualHead;
     static double xtrans;
     static double ytrans;
@@ -97,8 +100,9 @@ public class WebcamAprilTags implements Subsystem {
                             break;
                     }
                     actualHead = -(detection.ftcPose.yaw - detection.ftcPose.bearing);
-                    ytrans = Math.sin(Math.toRadians(actualHead)) * detection.ftcPose.range * pos;
-                    xtrans = Math.cos(Math.toRadians(actualHead)) * detection.ftcPose.range * pos;
+                    double actualRange = (Math.cos(detection.ftcPose.elevation+CAM_ANGLE_TO_GROUND)*detection.ftcPose.range);
+                    ytrans = Math.sin(Math.toRadians(actualHead)) * actualRange * pos;
+                    xtrans = Math.cos(Math.toRadians(actualHead)) * actualRange * pos;
 
 
 
