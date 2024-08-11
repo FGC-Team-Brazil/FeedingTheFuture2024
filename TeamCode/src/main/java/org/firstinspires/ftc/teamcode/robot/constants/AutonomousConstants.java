@@ -6,7 +6,7 @@ public class AutonomousConstants {
     public static final double LOOKFORWARDCONSTANT = 2;
     public static final double WHEEL_RADIUS = 4.5; //cm
     public static final double MOTOR_REDUCTION = 336; //ticks per revolution of wheel
-    public static final double TICK_TO_CM_CONVERSION_VALUE = 2*Math.PI*WHEEL_RADIUS/(MOTOR_REDUCTION);
+    public static final double TICK_TO_CM_CONVERSION_VALUE = 2*Math.PI*WHEEL_RADIUS/(MOTOR_REDUCTION); //this is an estimate and must be tuned in order for localizer to work properly
     //public static final double TRACK_WIDTH=0; //distance between parallel wheels viewing the robot from the front
     //public static final double WHEEL_BASE = TRACK_WIDTH; //same as track width but rom the side
     //public static final double LATERAL_MULTIPLIER=0;

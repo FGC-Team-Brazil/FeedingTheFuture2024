@@ -186,7 +186,7 @@ public class XDrive implements Subsystem {
 
     public void controlBasedOnVelocity(@NonNull TargetVelocityData movementState, double elapsedTime){
 
-        relativeOdometryUpdate(elapsedTime);
+        relativeOdometryUpdate();
 
         desiredVX += (movementState.getXV()-currVX)*elapsedTime*(AutonomousConstants.MAXACCELERATION/AutonomousConstants.MAXSPEED);
         desiredVY += (movementState.getYV()-currVY)*elapsedTime*(AutonomousConstants.MAXACCELERATION/AutonomousConstants.MAXSPEED);
@@ -223,7 +223,7 @@ public class XDrive implements Subsystem {
         return currentPose;
     }
 
-    public  void relativeOdometryUpdate(double elapsedSeconds) {
+    public  void relativeOdometryUpdate() {
         double dtheta;
         Pose2d robotPoseDelta = wheelToRobotVelocities();
 
@@ -242,7 +242,7 @@ public class XDrive implements Subsystem {
         //double cosTerm = Math.cos(dtheta);
         //Vector2d fieldPositionDelta = new Vector2d(sineTerm * robotPoseDelta.getX() - cosTerm * robotPoseDelta.getY(), cosTerm * robotPoseDelta.getX() + sineTerm * robotPoseDelta.getY()); probably closer to this
 
-        Pose2d fieldPoseDelta = new Pose2d(currentPose.getX()+ botXComponentRelativeToField*elapsedSeconds,currentPose.getY()+botYComponentRelativeToField*elapsedSeconds,
+        Pose2d fieldPoseDelta = new Pose2d(botXComponentRelativeToField,botYComponentRelativeToField,
                 robotPoseDelta.getHeadingDegrees());
         currentPose.updatePose(
                 currentPose.getX() + fieldPoseDelta.getX(),
@@ -251,10 +251,10 @@ public class XDrive implements Subsystem {
     }
     public Pose2d wheelToRobotVelocities() {
         //double k = (AutonomousConstants.TRACK_WIDTH + AutonomousConstants.WHEEL_BASE) / 2.0;
-        double frontLeft = (front_left.getCurrentPosition()-prevFLTicks1)/AutonomousConstants.MOTOR_REDUCTION*AutonomousConstants.WHEEL_RADIUS;
-        double rearLeft = (back_left.getCurrentPosition()-prevBLTicks1)/AutonomousConstants.MOTOR_REDUCTION*AutonomousConstants.WHEEL_RADIUS;
-        double rearRight = (back_right.getCurrentPosition()-prevBRTicks1)/AutonomousConstants.MOTOR_REDUCTION*AutonomousConstants.WHEEL_RADIUS;
-        double frontRight = (front_right.getCurrentPosition()-prevFRTicks1)/AutonomousConstants.MOTOR_REDUCTION*AutonomousConstants.WHEEL_RADIUS;
+        double frontLeft = (front_left.getCurrentPosition()-prevFLTicks1);
+        double rearLeft = (back_left.getCurrentPosition()-prevBLTicks1);
+        double rearRight = (back_right.getCurrentPosition()-prevBRTicks1);
+        double frontRight = (front_right.getCurrentPosition()-prevFRTicks1);
 
         prevFLTicks2 = prevFLTicks1;
         prevFRTicks2 = prevFRTicks1;
@@ -266,16 +266,15 @@ public class XDrive implements Subsystem {
         prevBLTicks1 = back_left.getCurrentPosition();
         prevBRTicks1 = back_right.getCurrentPosition();
 
-
-        //i think this shouldnt be divided by 4, instead should be multiplied by root(2) but gotta test that first
         return new Pose2d(
-                frontLeft+frontRight+rearLeft+rearRight/4,
-                (rearLeft + frontRight - frontLeft - rearRight)/4,
-                imu.getRobotAngularVelocity(AngleUnit.DEGREES).zRotationRate*1 //(rearRight + frontRight - frontLeft - rearLeft) / k/4
+                (frontLeft+frontRight+rearLeft+rearRight)*AutonomousConstants.TICK_TO_CM_CONVERSION_VALUE/4,
+                (rearLeft + frontRight - frontLeft - rearRight)*AutonomousConstants.TICK_TO_CM_CONVERSION_VALUE/4,
+                imu.getRobotAngularVelocity(AngleUnit.DEGREES).zRotationRate*1
+                //(rearRight + frontRight - frontLeft - rearLeft) / k/4 //can be used if no imu
         );
         //(novo x = (x * cos a - y* sin a), novo y = () )
     }
-    public Pose2d fieldToRobotVelocity(Pose2d fieldVel) {
+    public Pose2d fieldToRobotVelocity(@NonNull Pose2d fieldVel) {
         return new Pose2d(
                 fieldVel.getX()*Math.sin(-currentPose.getHeadingRadians()) - fieldVel.getY()*Math.cos(-currentPose.getHeadingRadians()),
                 fieldVel.getY()*Math.sin(-currentPose.getHeadingRadians()) + fieldVel.getX()*Math.cos(-currentPose.getHeadingRadians())
