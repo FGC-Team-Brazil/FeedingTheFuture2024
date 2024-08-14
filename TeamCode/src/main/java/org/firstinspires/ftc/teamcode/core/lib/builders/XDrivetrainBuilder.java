@@ -153,7 +153,7 @@ public class XDrivetrainBuilder implements Subsystem {
 
     /**
      * Default Method for drive control. This method is for
-     * tank drivetrains.
+     * xdrive holonomic drivetrains.
      * @param xSpeed
      * @param zRotation
      * @param driver
