@@ -12,11 +12,13 @@ public class AutonomousConstants {
     //public static final double LATERAL_MULTIPLIER=0;
     public static final double TOLERATED_HEADING_ERROR = 25;//degrees
     public static final double MAX_HEADING_VELOCITY = 0.5;//power applied to motor (0 to 1)
+    public static final double HEADING_APRIL_CONSTANT = 0.1;
+    public static final double ALIGN_AT_TAG_DISTANCE = 30;//distance to align from april tag cm
     public static double MAXSPEED = 3; // centimeter per second
     public static  double MAXACCELERATION = 0.1; //centimeter per second squared
     public static final double SPEEDPROPORTIONALGAIN = 0;
     public static PIDController pathFollowingPID = new PIDController(0.3,0,0,0); // do not touch kI or the robot goes crazy ü
-    public static PIDController stoppedAtPointPID = new PIDController(0.6,0,0,0);
+    public static PIDController stopAtPointPID = new PIDController(0.6,0,0,0);
 
     public static double HeadK= 0.001;
 }

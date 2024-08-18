@@ -12,6 +12,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.core.lib.autonomousControl.Pose2d;
 import org.firstinspires.ftc.teamcode.core.lib.gamepad.GamepadManager;
 import org.firstinspires.ftc.teamcode.core.lib.interfaces.Subsystem;
+import org.firstinspires.ftc.teamcode.robot.constants.AutonomousConstants;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagLibrary;
@@ -32,6 +33,7 @@ public class WebcamAprilTags implements Subsystem {
     static double actualHead;
     static double xtrans;
     static double ytrans;
+    Pose2d prevDetectedPose;
     private static VisionPortal visionPortal;
     public static AprilTagLibrary getFeedingTheFutureTagLibrary() {
         return (new Builder())
@@ -173,6 +175,12 @@ public class WebcamAprilTags implements Subsystem {
     @Override
     public void execute(GamepadManager gamepadManager) {
         Pose2d detectedPose = LocateWithAprilTag();
+        if (detectedPose != prevDetectedPose){
+            XDrive.getInstance().setCurrentPose(detectedPose);
+        }
+        prevDetectedPose = detectedPose;
+        XDrive.getInstance().relativeOdometryUpdate();
+        XDrive.getInstance().alignAtTag(XDrive.getInstance().getCurrentPose(), AutonomousConstants.ALIGN_AT_TAG_DISTANCE);
     }
     public static WebcamAprilTags getInstance() {
         if (instance == null) {

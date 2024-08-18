@@ -37,6 +37,9 @@ public class XDrive implements Subsystem {
 
 
     private PIDController motorPID = AutonomousConstants.pathFollowingPID;
+    private PIDController XpositionPID=AutonomousConstants.stopAtPointPID;
+    private PIDController YpositionPID=AutonomousConstants.stopAtPointPID;
+    private PIDController HpositionPID=AutonomousConstants.stopAtPointPID;
     double currVX;
     double currVY;
     double currentHeading;
@@ -201,6 +204,16 @@ public class XDrive implements Subsystem {
         double appliedBR = motorPID.calculate(desiredMotorSpeed.velocityBackRight,actualMotorSpeed.velocityBackRight);
 
         setPower(appliedFL,appliedFR,appliedBL,appliedBR);
+    }
+    public void alignAtTag(Pose2d tagPosition, double Xdsitance){
+
+        double VX = XpositionPID.calculate(Xdsitance,tagPosition.getX());
+        double VY = YpositionPID.calculate(0,tagPosition.getY());
+        double VH = HpositionPID.calculate(0,tagPosition.getHeadingRadians())*AutonomousConstants.HEADING_APRIL_CONSTANT;
+        MotorVelocityData wheelVels = getDesiredWheelVelocities(new Pose2d(VX,VY,VH));
+
+
+        setPower(wheelVels.velocityFrontLeft,wheelVels.velocityFrontRight, wheelVels.velocityBackLeft,wheelVels.velocityBackRight);
     }
 
     public MotorVelocityData getDesiredWheelVelocities(Pose2d botRelativeVelocity){

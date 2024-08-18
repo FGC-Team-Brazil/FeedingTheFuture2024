@@ -5,6 +5,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.core.lib.Robot;
 import org.firstinspires.ftc.teamcode.core.lib.autonomousControl.Pose2d;
+import org.firstinspires.ftc.teamcode.robot.subsystems.WebcamAprilTags;
 import org.firstinspires.ftc.teamcode.robot.subsystems.XDrive;
 
 /**
@@ -40,9 +41,8 @@ public class TeleOpMode extends OpMode {
     @Override
     public void loop() {
         robot.loop();
-        XDrive.getInstance().relativeOdometryUpdate();
         Pose2d currentPose = XDrive.getInstance().getCurrentPose();
-        //telemetry.addLine("X Position: "+currentPose.getX()+" | Y Position: "+currentPose.getY()+" | Heading: "+currentPose.getHeadingDegrees());
+        telemetry.addLine("X Position: "+currentPose.getX()+" | Y Position: "+currentPose.getY()+" | Heading: "+currentPose.getHeadingDegrees());
     }
 
     /**
