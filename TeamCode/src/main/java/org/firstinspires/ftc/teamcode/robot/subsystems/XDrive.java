@@ -94,14 +94,14 @@ public class XDrive implements Subsystem {
 
     @Override
     public void execute(GamepadManager gamepadManager) {
-        drive(gamepadManager.getDriver());
+        drive(gamepadManager.getDriver(),1);
         resetAngle(gamepadManager.getDriver());
     }
 
-    public void drive(SmartGamepad driver) {
-        double rotate = driver.getRightStickX()/4;
-        double stick_x = driver.getLeftStickX() * Math.sqrt(Math.pow(1-Math.abs(rotate), 2)/2);
-        double stick_y = driver.getLeftStickY() * Math.sqrt(Math.pow(1-Math.abs(rotate), 2)/2);
+    public void drive(SmartGamepad driver,double expoent) {
+        double rotate = driver.getRightStickX();
+        double stick_x = Math.pow(driver.getLeftStickX(),expoent);
+        double stick_y = Math.pow(driver.getLeftStickY(),expoent);
         double theta = 0;
         double Px = 0;
         double Py = 0;
@@ -185,26 +185,6 @@ public class XDrive implements Subsystem {
         back_right.setPower(BRSpeed);
     }
 
-    public void controlBasedOnVelocity(@NonNull TargetVelocityData movementState, double elapsedTime){
-
-        relativeOdometryUpdate();
-
-        desiredVX += (movementState.getXV()-currVX)*elapsedTime*(AutonomousConstants.MAXACCELERATION/AutonomousConstants.MAXSPEED);
-        desiredVY += (movementState.getYV()-currVY)*elapsedTime*(AutonomousConstants.MAXACCELERATION/AutonomousConstants.MAXSPEED);
-        Headingerror = (movementState.getH()-currentHeading);
-        Pose2d desiredVelocityField = new Pose2d(desiredVX,desiredVY,Headingerror*elapsedTime*AutonomousConstants.HeadK);
-        Pose2d desiredVelocityBot = fieldToRobotVelocity(desiredVelocityField);
-
-        MotorVelocityData desiredMotorSpeed = getDesiredWheelVelocities(desiredVelocityBot);
-        MotorVelocityData actualMotorSpeed = getRegistredWheelVelocities(elapsedTime);
-        //pid for motor speeds
-        double appliedFL = motorPID.calculate(desiredMotorSpeed.velocityFrontLeft,actualMotorSpeed.velocityFrontLeft);
-        double appliedFR = motorPID.calculate(desiredMotorSpeed.velocityFrontRight,actualMotorSpeed.velocityFrontRight);
-        double appliedBL = motorPID.calculate(desiredMotorSpeed.velocityBackLeft,actualMotorSpeed.velocityBackLeft);
-        double appliedBR = motorPID.calculate(desiredMotorSpeed.velocityBackRight,actualMotorSpeed.velocityBackRight);
-
-        setPower(appliedFL,appliedFR,appliedBL,appliedBR);
-    }
     public void alignAtTag(Pose2d tagPosition, double Xdsitance){
 
         double VX = XpositionPID.calculate(Xdsitance,tagPosition.getX());
@@ -279,19 +259,11 @@ public class XDrive implements Subsystem {
         prevBRTicks1 = back_right.getCurrentPosition();
 
 
-        //i think this shouldnt be divided by 4, instead should be multiplied by root(2) but gotta test that first
         return new Pose2d(
                 frontLeft+frontRight+rearLeft+rearRight/4,
                 (rearLeft + frontRight - frontLeft - rearRight)/4,
                 imu.getRobotAngularVelocity(AngleUnit.DEGREES).zRotationRate*1 //(rearRight + frontRight - frontLeft - rearLeft) / k/4
         );
-        //(novo x = (x * cos a - y* sin a), novo y = () )
-    }
-    public Pose2d fieldToRobotVelocity(Pose2d fieldVel) {
-        return new Pose2d(
-                fieldVel.getX()*Math.sin(-currentPose.getHeadingRadians()) - fieldVel.getY()*Math.cos(-currentPose.getHeadingRadians()),
-                fieldVel.getY()*Math.sin(-currentPose.getHeadingRadians()) + fieldVel.getX()*Math.cos(-currentPose.getHeadingRadians())
-                ,currentPose.getHeadingDegrees());
     }
 
 
