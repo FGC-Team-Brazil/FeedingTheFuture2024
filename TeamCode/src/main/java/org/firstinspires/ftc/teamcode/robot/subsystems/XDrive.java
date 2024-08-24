@@ -24,8 +24,15 @@ import org.firstinspires.ftc.teamcode.core.lib.gamepad.SmartGamepad;
 import org.firstinspires.ftc.teamcode.core.lib.interfaces.Subsystem;
 import org.firstinspires.ftc.teamcode.core.lib.pid.PIDController;
 import org.firstinspires.ftc.teamcode.robot.constants.AutonomousConstants;
+import org.firstinspires.ftc.teamcode.robot.constants.DrivetrainBuilderConstants;
+import org.opencv.core.Mat;
 
 public class XDrive implements Subsystem {
+    enum DrivetrainState{
+        MANUAL_CONTROL,
+        APRIL_TAG_ALIGNMENT
+    }
+    public DrivetrainState currentDriveState = DrivetrainState.MANUAL_CONTROL;
     private  Telemetry telemetry;
     private static XDrive instance;
     private double reset_angle = 0;
@@ -33,20 +40,14 @@ public class XDrive implements Subsystem {
     private DcMotor back_left = null;
     private DcMotor back_right = null;
     private DcMotor front_right = null;
+    private double expoent;
     private IMU imu;
 
 
-    private PIDController motorPID = AutonomousConstants.pathFollowingPID;
     private PIDController XpositionPID=AutonomousConstants.stopAtPointPID;
     private PIDController YpositionPID=AutonomousConstants.stopAtPointPID;
     private PIDController HpositionPID=AutonomousConstants.stopAtPointPID;
-    double currVX;
-    double currVY;
-    double currentHeading;
-    double desiredVX;
-    double desiredVY;
-    double Headingerror;
-    public RobotMovementState movementState = new RobotMovementState(0,0);
+
     Pose2d currentPose = START_POSITION;
     int prevFLTicks1 = 0;
     int prevFRTicks1 = 0;
@@ -94,15 +95,29 @@ public class XDrive implements Subsystem {
 
     @Override
     public void execute(GamepadManager gamepadManager) {
-        drive(gamepadManager.getDriver(),1);
-        resetAngle(gamepadManager.getDriver());
+        controlDriveState(gamepadManager.getDriver());
+        if (currentDriveState == DrivetrainState.MANUAL_CONTROL) {
+            if (gamepadManager.getDriver().isButtonX()) {
+                expoent = gamepadManager.getDriver().getRightStickY()*3/2+0.5;
+            } else {
+            drive(gamepadManager.getDriver(), expoent);
+            resetAngle(gamepadManager.getDriver());
+            }
+        }
+        telemetry.addData("current Drivebase Expoent", expoent);
+    }
+    public void controlDriveState(SmartGamepad driver){
+        double tolerance = 0.7;
+        if (Math.abs(driver.getLeftStickY())>tolerance||Math.abs(driver.getRightStickX())>tolerance){
+            currentDriveState = DrivetrainState.MANUAL_CONTROL;
+        }
     }
 
     public void drive(SmartGamepad driver,double expoent) {
         double rotate = driver.getRightStickX();
-        double stick_x = Math.pow(driver.getLeftStickX(),expoent);
-        double stick_y = Math.pow(driver.getLeftStickY(),expoent);
-        double theta = 0;
+        double stick_x = Math.pow(Math.abs(driver.getLeftStickX()),expoent)*driver.getLeftStickX();
+        double stick_y = Math.pow(Math.abs(driver.getLeftStickY()),expoent)*driver.getLeftStickY();
+
         double Px = 0;
         double Py = 0;
 
@@ -116,41 +131,32 @@ public class XDrive implements Subsystem {
         }
         gyroAngle = -1 * gyroAngle;
 
-        if(driver.isButtonRightBumper()){
-            gyroAngle = -Math.PI/2;
-        }
 
-        if(driver.isButtonDPadRight()){
-            stick_x = 0.5;
-        }
-        else if(driver.isButtonDPadLeft()){
-            stick_x = -0.5;
-        }
-        if(driver.isButtonDPadUp()){
-            stick_y = -0.5;
-        }
-        else if(driver.isButtonDPadDown()){
-            stick_y = 0.5;
-        }
 
 
         //MOVEMENT
-        theta = Math.atan2(stick_y, stick_x) - gyroAngle - (Math.PI / 2);
-        Px = Math.sqrt(Math.pow(stick_x, 2) + Math.pow(stick_y, 2)) * (Math.sin(theta + Math.PI / 4));
-        Py = Math.sqrt(Math.pow(stick_x, 2) + Math.pow(stick_y, 2)) * (Math.sin(theta - Math.PI / 4));
+        Px = stick_x * Math.cos(gyroAngle) + stick_y * Math.sin(gyroAngle);
+        Py = stick_x * Math.sin(-gyroAngle) + stick_y * Math.cos(-gyroAngle);
+
+        double maxValue = Math.abs(Px)+Math.abs(Py)+Math.abs(rotate);
+        double divider = Math.max(maxValue,1);//guarantees that applied motor speed will not exceed 1
+        double fL = (Py + Px + rotate) * 0.8 / divider;
+        double fR = (Py - Px - rotate) * 0.8 / divider;
+        double bL = (Py - Px + rotate) * 0.8 / divider;
+        double bR = (Py + Px - rotate) * 0.8 / divider;
 
         telemetry.addData("Stick_X", stick_x);
         telemetry.addData("Stick_Y", stick_y);
         telemetry.addData("Magnitude",  Math.sqrt(Math.pow(stick_x, 2) + Math.pow(stick_y, 2)));
-        telemetry.addData("Front Left", Py - rotate);
-        telemetry.addData("Back Left", Px - rotate);
-        telemetry.addData("Back Right", Py + rotate);
-        telemetry.addData("Front Right", Px + rotate);
+        telemetry.addData("Front Left", fL);
+        telemetry.addData("Back Left", bL);
+        telemetry.addData("Back Right", bR);
+        telemetry.addData("Front Right", fR);
 
-        front_left.setPower(Py - rotate);
-        back_left.setPower(Px - rotate);
-        back_right.setPower(Py + rotate);
-        front_right.setPower(Px + rotate);
+        front_left.setPower(fL);
+        back_left.setPower(bL);
+        back_right.setPower(bR);
+        front_right.setPower(fR);
     }
 
     public void resetAngle(SmartGamepad driver){
@@ -185,30 +191,17 @@ public class XDrive implements Subsystem {
         back_right.setPower(BRSpeed);
     }
 
-    public void alignAtTag(Pose2d tagPosition, double Xdsitance){
-
-        double VX = XpositionPID.calculate(Xdsitance,tagPosition.getX());
-        double VY = YpositionPID.calculate(0,tagPosition.getY());
+    public void alignAtTag(Pose2d tagPosition, double Xdistance,SmartGamepad driver){
+        double VX = XpositionPID.calculate(Xdistance,tagPosition.getX());
+        double VY = driver.getLeftStickY();
         double VH = HpositionPID.calculate(0,tagPosition.getHeadingRadians())*AutonomousConstants.HEADING_APRIL_CONSTANT;
         MotorVelocityData wheelVels = getDesiredWheelVelocities(new Pose2d(VX,VY,VH));
 
 
         setPower(wheelVels.velocityFrontLeft,wheelVels.velocityFrontRight, wheelVels.velocityBackLeft,wheelVels.velocityBackRight);
     }
-
     public MotorVelocityData getDesiredWheelVelocities(Pose2d botRelativeVelocity){
         return new MotorVelocityData().updateAppliedVelocities(botRelativeVelocity).normalize();
-    }
-    public MotorVelocityData getRegistredWheelVelocities(double elapsedTime){
-        double frontLeft = (front_left.getCurrentPosition()-prevFLTicks2)/2.0/AutonomousConstants.MOTOR_REDUCTION*AutonomousConstants.WHEEL_RADIUS/elapsedTime;
-        double rearLeft = (back_left.getCurrentPosition()-prevBLTicks2)/2.0/AutonomousConstants.MOTOR_REDUCTION*AutonomousConstants.WHEEL_RADIUS/elapsedTime;
-        double rearRight = (back_left.getCurrentPosition()-prevBRTicks2)/2.0/AutonomousConstants.MOTOR_REDUCTION*AutonomousConstants.WHEEL_RADIUS/elapsedTime;
-        double frontRight = (front_right.getCurrentPosition()-prevFRTicks2)/2.0/AutonomousConstants.MOTOR_REDUCTION*AutonomousConstants.WHEEL_RADIUS/elapsedTime;
-
-        return new MotorVelocityData(frontLeft,frontRight,rearLeft,rearRight);
-    }
-    public void setPose2d(Pose2d newPose){
-        currentPose =  newPose;
     }
     public Pose2d getCurrentPose(){
         return currentPose;
@@ -243,10 +236,10 @@ public class XDrive implements Subsystem {
     }
     public Pose2d wheelToRobotVelocities() {
         //double k = (AutonomousConstants.TRACK_WIDTH + AutonomousConstants.WHEEL_BASE) / 2.0;
-        double frontLeft = (front_left.getCurrentPosition()-prevFLTicks1)/AutonomousConstants.MOTOR_REDUCTION*AutonomousConstants.WHEEL_RADIUS;
-        double rearLeft = (back_left.getCurrentPosition()-prevBLTicks1)/AutonomousConstants.MOTOR_REDUCTION*AutonomousConstants.WHEEL_RADIUS;
-        double rearRight = (back_right.getCurrentPosition()-prevBRTicks1)/AutonomousConstants.MOTOR_REDUCTION*AutonomousConstants.WHEEL_RADIUS;
-        double frontRight = (front_right.getCurrentPosition()-prevFRTicks1)/AutonomousConstants.MOTOR_REDUCTION*AutonomousConstants.WHEEL_RADIUS;
+        double frontLeft = (front_left.getCurrentPosition()-prevFLTicks1)*AutonomousConstants.TICK_TO_CM_CONVERSION_VALUE;
+        double rearLeft = (back_left.getCurrentPosition()-prevBLTicks1)*AutonomousConstants.TICK_TO_CM_CONVERSION_VALUE;
+        double rearRight = (back_right.getCurrentPosition()-prevBRTicks1)*AutonomousConstants.TICK_TO_CM_CONVERSION_VALUE;
+        double frontRight = (front_right.getCurrentPosition()-prevFRTicks1)*AutonomousConstants.TICK_TO_CM_CONVERSION_VALUE;
 
         prevFLTicks2 = prevFLTicks1;
         prevFRTicks2 = prevFRTicks1;
@@ -258,7 +251,6 @@ public class XDrive implements Subsystem {
         prevBLTicks1 = back_left.getCurrentPosition();
         prevBRTicks1 = back_right.getCurrentPosition();
 
-
         return new Pose2d(
                 frontLeft+frontRight+rearLeft+rearRight/4,
                 (rearLeft + frontRight - frontLeft - rearRight)/4,
@@ -266,8 +258,12 @@ public class XDrive implements Subsystem {
         );
     }
 
-
-
-
-
+    public Pose2d configTickToCMConstant(){
+        Pose2d robotPoseDelta = wheelToRobotVelocities();
+        currentPose.updatePose(
+                currentPose.getX() + robotPoseDelta.getX()/AutonomousConstants.TICK_TO_CM_CONVERSION_VALUE,
+                currentPose.getY() + robotPoseDelta.getY()/AutonomousConstants.TICK_TO_CM_CONVERSION_VALUE,
+                0);
+        return currentPose;
+    }
 }

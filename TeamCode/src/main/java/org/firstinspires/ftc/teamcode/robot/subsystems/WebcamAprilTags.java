@@ -24,6 +24,17 @@ import java.util.List;
 
 public class WebcamAprilTags implements Subsystem {
     private static WebcamAprilTags instance;
+    public enum Sections{
+        BLUE_ALLIANCE_SIDE_3_NEXUSES,
+        BLUE_MIDDLE_3_NEXUSES,
+        RED_ALLIANCE_SIDE_3_NEXUSES,
+        RED_MIDDLE_3_NEXUSES,
+        BLUE_BACKWARDS_NEXUSES,
+        RED_BACKWARDS_NEXUSES,
+        BLUE_PLATAFORM_NEXUSES,
+        RED_PLATAFORM_NEXUSES,
+        UNKNOWN_SECTION
+    }
     private Telemetry telemetry;
     private static AprilTagProcessor aprilTag;
     static double CAM_DIST_TO_CENTER = 0;
@@ -34,6 +45,7 @@ public class WebcamAprilTags implements Subsystem {
     static double xtrans;
     static double ytrans;
     Pose2d prevDetectedPose;
+    private Sections currentSection = Sections.UNKNOWN_SECTION;
     private static VisionPortal visionPortal;
     public static AprilTagLibrary getFeedingTheFutureTagLibrary() {
         return (new Builder())
@@ -55,7 +67,8 @@ public class WebcamAprilTags implements Subsystem {
     public Pose2d LocateWithAprilTag() {
 
         List<AprilTagDetection> currentDetections = aprilTag.getDetections();
-
+        Sections section = Sections.UNKNOWN_SECTION;
+        currentSection = Sections.UNKNOWN_SECTION;
         // Step through the list of detections and display info for each one.
         if (currentDetections.size() > 0) {
             double avgX = 0;
@@ -67,42 +80,92 @@ public class WebcamAprilTags implements Subsystem {
                     double ytag = 0;
                     double pos = 0;
                     switch (detection.id) {
-                        //tem que ajustar os numeros para corresponder a arena
+                        /*//tem que ajustar os numeros para corresponder a arena
                         case 100:
-                            xtag = 0;
-                            ytag = 0;
+                            xtag = -41.12;
+                            ytag = -70.5;
+                            section = Sections.BLUE_PLATAFORM_NEXUSES;
                             break;
                         case 101:
-                            xtag = 0;
-                            ytag = 0;
+                            xtag = -41.12;
+                            ytag = 70.5;
+                            section = Sections.RED_PLATAFORM_NEXUSES;
                             break;
                         case 102:
-                            xtag = 0;
-                            ytag = 0;
+                            xtag = 46.12;
+                            ytag = -70.5;
+                            section = Sections.RED_BACKWARDS_NEXUSES;
                             break;
                         case 103:
-                            xtag = 0;
-                            ytag = 0;
+                            xtag = 46.12;
+                            ytag = 70.5;
+                            section = Sections.BLUE_BACKWARDS_NEXUSES;
                             break;
                         case 104:
                             xtag = 0;
                             ytag = 0;
+                            section = Sections.BLUE_ALLIANCE_SIDE_3_NEXUSES;
                             break;
                         case 105:
                             xtag = 0;
                             ytag = 0;
+                            section = Sections.BLUE_MIDDLE_3_NEXUSES;
                             break;
                         case 106:
                             xtag = 0;
                             ytag = 0;
+                            section = Sections.RED_MIDDLE_3_NEXUSES;
                             break;
                         case 107:
                             xtag = 0;
                             ytag = 0;
+                            section = Sections.RED_ALLIANCE_SIDE_3_NEXUSES;
+                            break;
+
+                         */
+                        case 100:
+                            xtag = 0;
+                            ytag = 0;
+                            section = Sections.BLUE_PLATAFORM_NEXUSES;
+                            break;
+                        case 101:
+                            xtag = 0;
+                            ytag = 0;
+                            section = Sections.RED_PLATAFORM_NEXUSES;
+                            break;
+                        case 102:
+                            xtag = 0;
+                            ytag = 0;
+                            section = Sections.RED_BACKWARDS_NEXUSES;
+                            break;
+                        case 103:
+                            xtag = 0;
+                            ytag = 0;
+                            section = Sections.BLUE_BACKWARDS_NEXUSES;
+                            break;
+                        case 104:
+                            xtag = 0;
+                            ytag = 0;
+                            section = Sections.BLUE_ALLIANCE_SIDE_3_NEXUSES;
+                            break;
+                        case 105:
+                            xtag = 0;
+                            ytag = 0;
+                            section = Sections.BLUE_MIDDLE_3_NEXUSES;
+                            break;
+                        case 106:
+                            xtag = 0;
+                            ytag = 0;
+                            section = Sections.RED_MIDDLE_3_NEXUSES;
+                            break;
+                        case 107:
+                            xtag = 0;
+                            ytag = 0;
+                            section = Sections.RED_ALLIANCE_SIDE_3_NEXUSES;
                             break;
                     }
                     actualHead = -(detection.ftcPose.yaw - detection.ftcPose.bearing);
-                    double actualRange = (Math.cos(detection.ftcPose.elevation+CAM_ANGLE_TO_GROUND)*detection.ftcPose.range);
+                    double actualRange = (Math.cos(detection.ftcPose.elevation+Math.toRadians(CAM_ANGLE_TO_GROUND))*detection.ftcPose.range);
                     ytrans = Math.sin(Math.toRadians(actualHead)) * actualRange * pos;
                     xtrans = Math.cos(Math.toRadians(actualHead)) * actualRange * pos;
 
@@ -120,9 +183,9 @@ public class WebcamAprilTags implements Subsystem {
                     telemetry.addLine(String.format("RBE %6.1f %6.1f %6.1f  (mm, deg, deg)", detection.ftcPose.range, detection.ftcPose.bearing, detection.ftcPose.elevation));
 
 
-                    avgX += (xtag - xtrans) - (Math.cos(Math.toRadians(-detection.ftcPose.yaw)) * CAM_DIST_TO_CENTER);
-                    avgY += (ytag - ytrans) - (Math.sin(Math.toRadians(-detection.ftcPose.yaw)) * CAM_DIST_TO_CENTER);
-                    avgHead += detection.ftcPose.yaw + 180;
+                    avgX = (xtag - xtrans) - (Math.cos(Math.toRadians(-detection.ftcPose.yaw)) * CAM_DIST_TO_CENTER);
+                    avgY = (ytag - ytrans) - (Math.sin(Math.toRadians(-detection.ftcPose.yaw)) * CAM_DIST_TO_CENTER);
+                    avgHead = detection.ftcPose.yaw + 180;
                 } else {
                     //telemetry.addLine(String.format("\n==== (ID %d) Unknown", detection.id));
                     //telemetry.addLine(String.format("Center %6.0f %6.0f   (pixels)", detection.center.x, detection.center.y));
@@ -159,6 +222,7 @@ public class WebcamAprilTags implements Subsystem {
                 .setCamera(hardwareMap.get(WebcamName.class,"Webcam 1"))
                 .setCameraResolution(new Size(640,480))
                 .build();
+
         telemetry.addLine("aprilTag Subsystem initialized");
     }
 
@@ -178,9 +242,14 @@ public class WebcamAprilTags implements Subsystem {
         if (detectedPose != prevDetectedPose){
             XDrive.getInstance().setCurrentPose(detectedPose);
         }
-        prevDetectedPose = detectedPose;
         XDrive.getInstance().relativeOdometryUpdate();
-        XDrive.getInstance().alignAtTag(XDrive.getInstance().getCurrentPose(), AutonomousConstants.ALIGN_AT_TAG_DISTANCE);
+        prevDetectedPose = detectedPose;
+
+
+        if (gamepadManager.getDriver().isButtonX()){  XDrive.getInstance().currentDriveState = XDrive.DrivetrainState.APRIL_TAG_ALIGNMENT;  }
+        if (XDrive.getInstance().currentDriveState == XDrive.DrivetrainState.APRIL_TAG_ALIGNMENT) {
+            XDrive.getInstance().alignAtTag(XDrive.getInstance().getCurrentPose(), AutonomousConstants.ALIGN_AT_TAG_DISTANCE, gamepadManager.getDriver());
+        }
     }
     public static WebcamAprilTags getInstance() {
         if (instance == null) {
