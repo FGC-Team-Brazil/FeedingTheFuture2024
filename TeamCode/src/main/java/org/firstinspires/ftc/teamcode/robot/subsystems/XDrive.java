@@ -7,6 +7,8 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import com.qualcomm.hardware.bosch.BNO055IMU;
+import com.qualcomm.robotcore.hardware.IMU;
+
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
@@ -24,7 +26,7 @@ public class XDrive implements Subsystem {
     private DcMotor back_left = null;
     private DcMotor back_right = null;
     private DcMotor front_right = null;
-    private BNO055IMU imu;
+    private IMU imu;
 
     private XDrive() {
     }
@@ -48,14 +50,14 @@ public class XDrive implements Subsystem {
 
         this.telemetry = telemetry;
 
-        imu = hardwareMap.get(BNO055IMU.class, "imu");
-        BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
-        parameters.mode                = BNO055IMU.SensorMode.IMU;
-        parameters.angleUnit           = BNO055IMU.AngleUnit.DEGREES;
-        parameters.accelUnit           = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
+        imu = hardwareMap.get(IMU.class, "imu");
+        /*IMU.Parameters parameters = new IMU.Parameters();
+        parameters.mode                = IMU.SensorMode.IMU;
+        parameters.angleUnit           = IMU.AngleUnit.DEGREES;
+        parameters.accelUnit           = IMU.AccelUnit.METERS_PERSEC_PERSEC;
         parameters.loggingEnabled      = false;
         imu.initialize(parameters);
-
+*/
     }
 
     @Override
@@ -134,7 +136,7 @@ public class XDrive implements Subsystem {
     }
 
     public double getHeading(){
-        Orientation angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+        Orientation angles = imu.getRobotOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
         double heading = angles.firstAngle;
         if(heading < -180) {
             heading = heading + 360;
