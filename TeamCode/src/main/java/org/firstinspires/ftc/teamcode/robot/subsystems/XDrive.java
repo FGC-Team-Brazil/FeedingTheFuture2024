@@ -186,8 +186,8 @@ public class XDrive implements Subsystem {
         back_right.setPower(BRSpeed);
     }
 
-    public void alignAtTag(Pose2d tagPosition, double Ydistance,SmartGamepad driver){
-        double VX = -YpositionPID.calculate(-Ydistance,tagPosition.getY());
+    public void alignAtTag(Pose2d tagPosition,SmartGamepad driver){
+        double VX = -YpositionPID.calculate(AutonomousConstants.ALIGN_AT_TAG_DISTANCE,tagPosition.getY());
         double VY = driver.getLeftStickX();
         double VH = -HpositionPID.calculate(0,tagPosition.getHeadingRadians())*AutonomousConstants.HEADING_APRIL_CONSTANT;
         MotorVelocityData wheelVels = getDesiredWheelVelocities(new Pose2d(VX,VY,VH));

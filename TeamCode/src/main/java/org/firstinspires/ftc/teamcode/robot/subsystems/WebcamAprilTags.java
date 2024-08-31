@@ -203,7 +203,7 @@ public class WebcamAprilTags implements Subsystem {
 
         if (gamepadManager.getDriver().isButtonX()){  XDrive.getInstance().currentDriveState = XDrive.DrivetrainState.APRIL_TAG_ALIGNMENT;  }
         if (XDrive.getInstance().currentDriveState == XDrive.DrivetrainState.APRIL_TAG_ALIGNMENT) {
-            XDrive.getInstance().alignAtTag(XDrive.getInstance().getCurrentPose(), AutonomousConstants.ALIGN_AT_TAG_DISTANCE, gamepadManager.getDriver());
+            XDrive.getInstance().alignAtTag(XDrive.getInstance().getCurrentPose(), gamepadManager.getDriver());
         }
     }
     public static WebcamAprilTags getInstance() {

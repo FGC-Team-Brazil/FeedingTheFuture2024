@@ -39,11 +39,7 @@ public class TeleOpMode extends OpMode {
      * Runs the execute method of all subsystems
      */
     @Override
-    public void loop() {
-        robot.loop();
-        Pose2d currentPose = XDrive.getInstance().getCurrentPose();
-        telemetry.addLine("X Position: "+currentPose.getX()+" | Y Position: "+currentPose.getY()+" | Heading: "+currentPose.getHeadingDegrees());
-    }
+    public void loop() {robot.loop();}
 
     /**
      * Runs the stop method of all subsystems
