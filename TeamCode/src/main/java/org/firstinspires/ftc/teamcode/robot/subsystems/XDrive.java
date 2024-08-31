@@ -2,20 +2,27 @@ package org.firstinspires.ftc.teamcode.robot.subsystems;
 
 import static org.firstinspires.ftc.teamcode.robot.constants.XDriveConstants.*;
 
+import androidx.annotation.NonNull;
+
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.hardware.IMU;
+import com.qualcomm.robotcore.hardware.ImuOrientationOnRobot;
 
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.Quaternion;
 import org.firstinspires.ftc.teamcode.core.lib.gamepad.GamepadManager;
 import org.firstinspires.ftc.teamcode.core.lib.gamepad.SmartGamepad;
 import org.firstinspires.ftc.teamcode.core.lib.interfaces.Subsystem;
+import org.firstinspires.ftc.teamcode.core.util.MathUtils;
+
+import java.util.HashMap;
 
 public class XDrive implements Subsystem {
 
@@ -27,6 +34,7 @@ public class XDrive implements Subsystem {
     private DcMotor back_right = null;
     private DcMotor front_right = null;
     private IMU imu;
+    private HashMap<String, Float> imuOrientation = new HashMap<String, Float>();
 
     private XDrive() {
     }
@@ -50,14 +58,13 @@ public class XDrive implements Subsystem {
 
         this.telemetry = telemetry;
 
+        imuOrientation.put("roll", (float)0);
+        imuOrientation.put("pitch", (float)0);
+        imuOrientation.put("yaw", (float)180);
+
         imu = hardwareMap.get(IMU.class, "imu");
-        /*IMU.Parameters parameters = new IMU.Parameters();
-        parameters.mode                = IMU.SensorMode.IMU;
-        parameters.angleUnit           = IMU.AngleUnit.DEGREES;
-        parameters.accelUnit           = IMU.AccelUnit.METERS_PERSEC_PERSEC;
-        parameters.loggingEnabled      = false;
+        IMU.Parameters parameters = getParameters();
         imu.initialize(parameters);
-*/
     }
 
     @Override
@@ -146,6 +153,28 @@ public class XDrive implements Subsystem {
         }
         heading = heading - reset_angle;
         return heading;
+    }
+
+    @NonNull
+    private IMU.Parameters getParameters() {
+        ImuOrientationOnRobot orientation = new ImuOrientationOnRobot() {
+            @Override
+            public Quaternion imuCoordinateSystemOrientationFromPerspectiveOfRobot() {
+                if(imuOrientation.get("roll") == null
+                        || imuOrientation.get("pitch") == null
+                        || imuOrientation.get("yaw") == null) {
+                    return new Quaternion(0,0,0,1,0);
+                }
+                return MathUtils.quartenionToEuler(imuOrientation.get("roll"),imuOrientation.get("pitch"),imuOrientation.get("yaw"));
+            }
+
+            @Override
+            public Quaternion imuRotationOffset() {return null;}
+            @Override
+            public Quaternion angularVelocityTransform() {return null;}
+        };
+        IMU.Parameters parameters = new IMU.Parameters(orientation);
+        return parameters;
     }
 
     public static synchronized XDrive getInstance() {
