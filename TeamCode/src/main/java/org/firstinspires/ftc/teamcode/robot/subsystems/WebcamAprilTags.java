@@ -69,6 +69,7 @@ public class WebcamAprilTags implements Subsystem {
         List<AprilTagDetection> currentDetections = aprilTag.getDetections();
         Sections section = Sections.UNKNOWN_SECTION;
         currentSection = Sections.UNKNOWN_SECTION;
+
         // Step through the list of detections and display info for each one.
         if (currentDetections.size() > 0) {
             double distX = 0;
@@ -150,14 +151,6 @@ public class WebcamAprilTags implements Subsystem {
                 }
             }   // end for() loop
 
-            // Add "key" information to telemetry
-            //telemetry.addLine("\nkey:\nXYZ = X (Right), Y (Forward), Z (Up) dist.");
-            //telemetry.addLine("PRY = Pitch, Roll & Yaw (XYZ Rotation)");
-            //telemetry.addLine("RBE = Range, Bearing & Elevation");
-            //XDrive.getInstance().setCurrentPose(new Pose2d(distX/currentDetections.size()
-            //        ,distY/currentDetections.size()
-            //        ,Math.toRadians(avgHead)/currentDetections.size()
-            //));
             return new Pose2d(distX/currentDetections.size()
                     ,distY/currentDetections.size()
                     ,Math.toRadians(avgHead)/currentDetections.size()

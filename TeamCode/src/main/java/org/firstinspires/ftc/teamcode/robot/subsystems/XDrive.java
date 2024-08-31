@@ -41,7 +41,6 @@ public class XDrive implements Subsystem {
     private DcMotor back_left = null;
     private DcMotor back_right = null;
     private DcMotor front_right = null;
-    private double expoent;
     private IMU imu;
 
 
@@ -98,15 +97,10 @@ public class XDrive implements Subsystem {
     public void execute(GamepadManager gamepadManager) {
         controlDriveState(gamepadManager.getDriver());
         if (currentDriveState == DrivetrainState.MANUAL_CONTROL) {
-            if (gamepadManager.getDriver().isButtonY()) {
-                expoent = gamepadManager.getDriver().getRightStickY()*3/2+0.5;
-            } else {
-                drive(gamepadManager.getDriver(), expoent);
-                resetAngle(gamepadManager.getDriver());
-            }
+
+            drive(gamepadManager.getDriver());
+            resetAngle(gamepadManager.getDriver());
         }
-        telemetry.addLine("to change expoent press Y and use the right trigger to reach the desired expoent");
-        telemetry.addData("current Drivebase Expoent", expoent);
     }
     public void controlDriveState(SmartGamepad driver){
         if (Math.abs(driver.getLeftStickY())> XDriveConstants.APRIL_TAG_BREAK_TOLERANCE ||Math.abs(driver.getRightStickX())>XDriveConstants.APRIL_TAG_BREAK_TOLERANCE){
@@ -114,10 +108,10 @@ public class XDrive implements Subsystem {
         }
     }
 
-    public void drive(SmartGamepad driver,double expoent) {
+    public void drive(SmartGamepad driver) {
         double rotate =  -driver.getRightStickX();
-        double stick_x = Math.pow(Math.abs(driver.getLeftStickX()),expoent)*driver.getLeftStickX();
-        double stick_y = Math.pow(Math.abs(driver.getLeftStickY()),expoent)*driver.getLeftStickY();
+        double stick_x = driver.getLeftStickX();
+        double stick_y = driver.getLeftStickY();
 
         double Px = 0;
         double Py = 0;
@@ -146,13 +140,13 @@ public class XDrive implements Subsystem {
         double bL = (Py - Px + rotate) * 0.8 / divider;
         double bR = (Py + Px - rotate) * 0.8 / divider;
 
-        telemetry.addData("Stick_X", stick_x);
-        telemetry.addData("Stick_Y", stick_y);
-        telemetry.addData("Magnitude",  Math.sqrt(Math.pow(stick_x, 2) + Math.pow(stick_y, 2)));
-        telemetry.addData("Front Left", fL);
-        telemetry.addData("Back Left", bL);
-        telemetry.addData("Back Right", bR);
-        telemetry.addData("Front Right", fR);
+        //telemetry.addData("Stick_X", stick_x);
+        //telemetry.addData("Stick_Y", stick_y);
+        //telemetry.addData("Magnitude",  Math.sqrt(Math.pow(stick_x, 2) + Math.pow(stick_y, 2)));
+        //telemetry.addData("Front Left", fL);
+        //telemetry.addData("Back Left", bL);
+        //telemetry.addData("Back Right", bR);
+        //telemetry.addData("Front Right", fR);
 
         front_left.setPower(fL);
         back_left.setPower(bL);
@@ -197,9 +191,15 @@ public class XDrive implements Subsystem {
         double VY = driver.getLeftStickX();
         double VH = -HpositionPID.calculate(0,tagPosition.getHeadingRadians())*AutonomousConstants.HEADING_APRIL_CONSTANT;
         MotorVelocityData wheelVels = getDesiredWheelVelocities(new Pose2d(VX,VY,VH));
-        telemetry.addData("vx",VX);
+        telemetry.addData("VX",VX);
         telemetry.addData("VY",VY);
         telemetry.addData("VH",VH);
+        telemetry.addData("X position detected from tags:", currentPose.getX());
+        telemetry.addData("Y position detected from tags:", currentPose.getY());
+        telemetry.addData("Heading detected from tags:", currentPose.getHeadingDegrees());
+        telemetry.addData("Target X position: ",AutonomousConstants.ALIGN_AT_TAG_DISTANCE);
+        telemetry.addData("Target Heading: ",0.0);
+
 
         setPower(wheelVels.velocityFrontLeft,wheelVels.velocityFrontRight, wheelVels.velocityBackLeft,wheelVels.velocityBackRight);
     }
@@ -224,11 +224,6 @@ public class XDrive implements Subsystem {
 
         double botXComponentRelativeToField = robotPoseDelta.getX()*Math.sin(currentPose.getHeadingRadians()) - robotPoseDelta.getY()*Math.cos(currentPose.getHeadingRadians()); // i dont know if this is right, gotta test it
         double botYComponentRelativeToField = robotPoseDelta.getY()*Math.sin(currentPose.getHeadingRadians()) + robotPoseDelta.getX()*Math.cos(currentPose.getHeadingRadians());
-
-        //Pair var8 = var10000;
-        //double sineTerm = Math.sin(dtheta);
-        //double cosTerm = Math.cos(dtheta);
-        //Vector2d fieldPositionDelta = new Vector2d(sineTerm * robotPoseDelta.getX() - cosTerm * robotPoseDelta.getY(), cosTerm * robotPoseDelta.getX() + sineTerm * robotPoseDelta.getY()); probably closer to this
 
         Pose2d fieldPoseDelta = new Pose2d(botXComponentRelativeToField,botYComponentRelativeToField,
                 robotPoseDelta.getHeadingDegrees());
