@@ -34,7 +34,9 @@ public class XDrive implements Subsystem {
     private DcMotor back_right = null;
     private DcMotor front_right = null;
     private IMU imu;
-    private HashMap<String, Float> imuOrientation = new HashMap<String, Float>();
+    private float imuRoll = 0;
+    private float imuPitch = 0;
+    private float imuYaw = 180;
 
     private XDrive() {
     }
@@ -57,10 +59,6 @@ public class XDrive implements Subsystem {
         back_right.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         this.telemetry = telemetry;
-
-        imuOrientation.put("roll", (float)0);
-        imuOrientation.put("pitch", (float)0);
-        imuOrientation.put("yaw", (float)180);
 
         imu = hardwareMap.get(IMU.class, "imu");
         IMU.Parameters parameters = getParameters();
@@ -160,18 +158,13 @@ public class XDrive implements Subsystem {
         ImuOrientationOnRobot orientation = new ImuOrientationOnRobot() {
             @Override
             public Quaternion imuCoordinateSystemOrientationFromPerspectiveOfRobot() {
-                if(imuOrientation.get("roll") == null
-                        || imuOrientation.get("pitch") == null
-                        || imuOrientation.get("yaw") == null) {
-                    return new Quaternion(0,0,0,1,0);
-                }
-                return MathUtils.quartenionToEuler(imuOrientation.get("roll"),imuOrientation.get("pitch"),imuOrientation.get("yaw"));
+                return MathUtils.quartenionToEuler(imuRoll,imuPitch,imuYaw);
             }
 
             @Override
-            public Quaternion imuRotationOffset() {return null;}
+            public Quaternion imuRotationOffset() {return new Quaternion(1,0,0,0,0);}
             @Override
-            public Quaternion angularVelocityTransform() {return null;}
+            public Quaternion angularVelocityTransform() {return new Quaternion(1,0,0,0,0);}
         };
         IMU.Parameters parameters = new IMU.Parameters(orientation);
         return parameters;
