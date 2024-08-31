@@ -25,6 +25,7 @@ import org.firstinspires.ftc.teamcode.core.lib.interfaces.Subsystem;
 import org.firstinspires.ftc.teamcode.core.lib.pid.PIDController;
 import org.firstinspires.ftc.teamcode.robot.constants.AutonomousConstants;
 import org.firstinspires.ftc.teamcode.robot.constants.DrivetrainBuilderConstants;
+import org.firstinspires.ftc.teamcode.robot.constants.XDriveConstants;
 import org.opencv.core.Mat;
 
 public class XDrive implements Subsystem {
@@ -82,7 +83,7 @@ public class XDrive implements Subsystem {
 
         imu = hardwareMap.get(IMU.class, "imu");
 
-
+        telemetry.addLine("Xdrive initialized");
     }
 
     @Override
@@ -97,24 +98,24 @@ public class XDrive implements Subsystem {
     public void execute(GamepadManager gamepadManager) {
         controlDriveState(gamepadManager.getDriver());
         if (currentDriveState == DrivetrainState.MANUAL_CONTROL) {
-            if (gamepadManager.getDriver().isButtonX()) {
+            if (gamepadManager.getDriver().isButtonY()) {
                 expoent = gamepadManager.getDriver().getRightStickY()*3/2+0.5;
             } else {
-            drive(gamepadManager.getDriver(), expoent);
-            resetAngle(gamepadManager.getDriver());
+                drive(gamepadManager.getDriver(), expoent);
+                resetAngle(gamepadManager.getDriver());
             }
         }
+        telemetry.addLine("to change expoent press Y and use the right trigger to reach the desired expoent");
         telemetry.addData("current Drivebase Expoent", expoent);
     }
     public void controlDriveState(SmartGamepad driver){
-        double tolerance = 0.7;
-        if (Math.abs(driver.getLeftStickY())>tolerance||Math.abs(driver.getRightStickX())>tolerance){
+        if (Math.abs(driver.getLeftStickY())> XDriveConstants.APRIL_TAG_BREAK_TOLERANCE ||Math.abs(driver.getRightStickX())>XDriveConstants.APRIL_TAG_BREAK_TOLERANCE){
             currentDriveState = DrivetrainState.MANUAL_CONTROL;
         }
     }
 
     public void drive(SmartGamepad driver,double expoent) {
-        double rotate = driver.getRightStickX();
+        double rotate =  -driver.getRightStickX();
         double stick_x = Math.pow(Math.abs(driver.getLeftStickX()),expoent)*driver.getLeftStickX();
         double stick_y = Math.pow(Math.abs(driver.getLeftStickY()),expoent)*driver.getLeftStickY();
 
@@ -129,14 +130,14 @@ public class XDrive implements Subsystem {
         } else if (Math.PI / 2 <= gyroAngle) {
             gyroAngle = gyroAngle - (3 * Math.PI / 2);
         }
-        gyroAngle = -1 * gyroAngle;
+        gyroAngle = 1 * gyroAngle;
 
 
 
 
         //MOVEMENT
-        Px = stick_x * Math.cos(gyroAngle) + stick_y * Math.sin(gyroAngle);
-        Py = stick_x * Math.sin(-gyroAngle) + stick_y * Math.cos(-gyroAngle);
+        Py = stick_x * Math.cos(gyroAngle) + stick_y * Math.sin(gyroAngle);
+        Px = stick_x * Math.sin(-gyroAngle) + stick_y * Math.cos(-gyroAngle);
 
         double maxValue = Math.abs(Px)+Math.abs(Py)+Math.abs(rotate);
         double divider = Math.max(maxValue,1);//guarantees that applied motor speed will not exceed 1
@@ -191,12 +192,14 @@ public class XDrive implements Subsystem {
         back_right.setPower(BRSpeed);
     }
 
-    public void alignAtTag(Pose2d tagPosition, double Xdistance,SmartGamepad driver){
-        double VX = XpositionPID.calculate(Xdistance,tagPosition.getX());
-        double VY = driver.getLeftStickY();
-        double VH = HpositionPID.calculate(0,tagPosition.getHeadingRadians())*AutonomousConstants.HEADING_APRIL_CONSTANT;
+    public void alignAtTag(Pose2d tagPosition, double Ydistance,SmartGamepad driver){
+        double VX = -YpositionPID.calculate(-Ydistance,tagPosition.getY());
+        double VY = driver.getLeftStickX();
+        double VH = -HpositionPID.calculate(0,tagPosition.getHeadingRadians())*AutonomousConstants.HEADING_APRIL_CONSTANT;
         MotorVelocityData wheelVels = getDesiredWheelVelocities(new Pose2d(VX,VY,VH));
-
+        telemetry.addData("vx",VX);
+        telemetry.addData("VY",VY);
+        telemetry.addData("VH",VH);
 
         setPower(wheelVels.velocityFrontLeft,wheelVels.velocityFrontRight, wheelVels.velocityBackLeft,wheelVels.velocityBackRight);
     }

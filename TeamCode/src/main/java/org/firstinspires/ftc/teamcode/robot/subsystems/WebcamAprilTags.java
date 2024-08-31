@@ -71,16 +71,15 @@ public class WebcamAprilTags implements Subsystem {
         currentSection = Sections.UNKNOWN_SECTION;
         // Step through the list of detections and display info for each one.
         if (currentDetections.size() > 0) {
-            double avgX = 0;
-            double avgY = 0;
+            double distX = 0;
+            double distY = 0;
             double avgHead = 0;
             for (AprilTagDetection detection : currentDetections) {
                 if (detection.metadata != null) {
                     double xtag = 0;
                     double ytag = 0;
-                    double pos = 0;
                     switch (detection.id) {
-                        /*//tem que ajustar os numeros para corresponder a arena
+                        //tem que ajustar os numeros para corresponder a arena
                         case 100:
                             xtag = -41.12;
                             ytag = -70.5;
@@ -99,48 +98,6 @@ public class WebcamAprilTags implements Subsystem {
                         case 103:
                             xtag = 46.12;
                             ytag = 70.5;
-                            section = Sections.BLUE_BACKWARDS_NEXUSES;
-                            break;
-                        case 104:
-                            xtag = 0;
-                            ytag = 0;
-                            section = Sections.BLUE_ALLIANCE_SIDE_3_NEXUSES;
-                            break;
-                        case 105:
-                            xtag = 0;
-                            ytag = 0;
-                            section = Sections.BLUE_MIDDLE_3_NEXUSES;
-                            break;
-                        case 106:
-                            xtag = 0;
-                            ytag = 0;
-                            section = Sections.RED_MIDDLE_3_NEXUSES;
-                            break;
-                        case 107:
-                            xtag = 0;
-                            ytag = 0;
-                            section = Sections.RED_ALLIANCE_SIDE_3_NEXUSES;
-                            break;
-
-                         */
-                        case 100:
-                            xtag = 0;
-                            ytag = 0;
-                            section = Sections.BLUE_PLATAFORM_NEXUSES;
-                            break;
-                        case 101:
-                            xtag = 0;
-                            ytag = 0;
-                            section = Sections.RED_PLATAFORM_NEXUSES;
-                            break;
-                        case 102:
-                            xtag = 0;
-                            ytag = 0;
-                            section = Sections.RED_BACKWARDS_NEXUSES;
-                            break;
-                        case 103:
-                            xtag = 0;
-                            ytag = 0;
                             section = Sections.BLUE_BACKWARDS_NEXUSES;
                             break;
                         case 104:
@@ -166,29 +123,30 @@ public class WebcamAprilTags implements Subsystem {
                     }
                     actualHead = -(detection.ftcPose.yaw - detection.ftcPose.bearing);
                     double actualRange = (Math.cos(detection.ftcPose.elevation+Math.toRadians(CAM_ANGLE_TO_GROUND))*detection.ftcPose.range);
-                    ytrans = Math.sin(Math.toRadians(actualHead)) * actualRange * pos;
-                    xtrans = Math.cos(Math.toRadians(actualHead)) * actualRange * pos;
+                    ytrans = Math.sin(Math.toRadians(actualHead)) * actualRange;
+                    xtrans = Math.cos(Math.toRadians(actualHead)) * actualRange;
 
 
 
                     telemetry.addLine(String.format("\n==== (ID %d) %s", detection.id, detection.metadata.name));
                     telemetry.addLine(String.format("Xtrans %6.1f Ytrans %6.1f",xtrans,ytrans));
-                    telemetry.addLine(String.format("CAM FIELD XY %6.1f %6.1f", xtag - xtrans, ytag - ytrans));
+                    telemetry.addLine(String.format("CAM FIELD XY %6.1f %6.1f", xtrans, ytrans));
                     //telemetry.addLine(String.format("BOT FIELD XY HEAD %6.1f %6.1f %6.1f",
                             //(xtag - xtrans) - (Math.cos(Math.toRadians(-detection.ftcPose.yaw)) * CAM_DIST_TO_CENTER),
                             //(ytag - ytrans) - (Math.sin(Math.toRadians(-detection.ftcPose.yaw)) * CAM_DIST_TO_CENTER),
                             //detection.ftcPose.yaw));
                     //telemetry.addLine(String.format("XYZ %6.1f %6.1f %6.1f  (inch)", detection.ftcPose.x, detection.ftcPose.y, detection.ftcPose.z));
                     //telemetry.addLine(String.format("PRY %6.1f %6.1f %6.1f  (deg)", detection.ftcPose.pitch, detection.ftcPose.roll, detection.ftcPose.yaw));
-                    telemetry.addLine(String.format("RBE %6.1f %6.1f %6.1f  (mm, deg, deg)", detection.ftcPose.range, detection.ftcPose.bearing, detection.ftcPose.elevation));
+                    telemetry.addLine(String.format("RBE %6.1f %6.1f %6.1f  (cm, deg, deg)", detection.ftcPose.range, detection.ftcPose.bearing, detection.ftcPose.elevation));
 
 
-                    avgX = (xtag - xtrans) - (Math.cos(Math.toRadians(-detection.ftcPose.yaw)) * CAM_DIST_TO_CENTER);
-                    avgY = (ytag - ytrans) - (Math.sin(Math.toRadians(-detection.ftcPose.yaw)) * CAM_DIST_TO_CENTER);
-                    avgHead = detection.ftcPose.yaw + 180;
+                    distX += (xtrans) + (Math.cos(Math.toRadians(-detection.ftcPose.yaw)) * CAM_DIST_TO_CENTER);
+                    distY += (ytrans) + (Math.sin(Math.toRadians(-detection.ftcPose.yaw)) * CAM_DIST_TO_CENTER);
+                    //y is useless for our method but we still calculate it for displaying
+                    avgHead += detection.ftcPose.yaw;
                 } else {
-                    //telemetry.addLine(String.format("\n==== (ID %d) Unknown", detection.id));
-                    //telemetry.addLine(String.format("Center %6.0f %6.0f   (pixels)", detection.center.x, detection.center.y));
+                    telemetry.addLine(String.format("\n==== (ID %d) Unknown", detection.id));
+                    telemetry.addLine(String.format("Center %6.0f %6.0f   (pixels)", detection.center.x, detection.center.y));
                 }
             }   // end for() loop
 
@@ -196,8 +154,14 @@ public class WebcamAprilTags implements Subsystem {
             //telemetry.addLine("\nkey:\nXYZ = X (Right), Y (Forward), Z (Up) dist.");
             //telemetry.addLine("PRY = Pitch, Roll & Yaw (XYZ Rotation)");
             //telemetry.addLine("RBE = Range, Bearing & Elevation");
-            XDrive.getInstance().setCurrentPose(new Pose2d(avgX,avgY,Math.toRadians(avgHead)));
-            return new Pose2d(avgX,avgY,Math.toRadians(avgHead));
+            //XDrive.getInstance().setCurrentPose(new Pose2d(distX/currentDetections.size()
+            //        ,distY/currentDetections.size()
+            //        ,Math.toRadians(avgHead)/currentDetections.size()
+            //));
+            return new Pose2d(distX/currentDetections.size()
+                    ,distY/currentDetections.size()
+                    ,Math.toRadians(avgHead)/currentDetections.size()
+            );
         } else{
             return XDrive.getInstance().getCurrentPose();
         }
@@ -211,7 +175,7 @@ public class WebcamAprilTags implements Subsystem {
                 .setDrawAxes(true)
                 .setDrawCubeProjection(true)
                 .setDrawTagOutline(true)
-                .setOutputUnits(DistanceUnit.MM, AngleUnit.DEGREES)
+                .setOutputUnits(DistanceUnit.CM, AngleUnit.DEGREES)
                 .setTagLibrary(getFeedingTheFutureTagLibrary())
                 .build();
 
@@ -233,15 +197,13 @@ public class WebcamAprilTags implements Subsystem {
 
     @Override
     public void stop() {
-
+        visionPortal.stopStreaming();
     }
 
     @Override
     public void execute(GamepadManager gamepadManager) {
         Pose2d detectedPose = LocateWithAprilTag();
-        if (detectedPose != prevDetectedPose){
-            XDrive.getInstance().setCurrentPose(detectedPose);
-        }
+        XDrive.getInstance().setCurrentPose(detectedPose);
         XDrive.getInstance().relativeOdometryUpdate();
         prevDetectedPose = detectedPose;
 

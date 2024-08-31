@@ -17,7 +17,7 @@ import java.util.List;
  */
 public class RobotSubsystems {
     private static final Subsystem[] subsystems = {
-            //XDrive.getInstance(),
+            XDrive.getInstance(),
             WebcamAprilTags.getInstance()
             // Add more subsystems here
     };
