@@ -17,16 +17,13 @@ import org.firstinspires.ftc.teamcode.core.lib.interfaces.Subsystem;
 public class ConveyorSubsystem implements Subsystem {
     private static ConveyorSubsystem instance;
 
-    private Servo boxExpansionServo;
+    private CRServo boxWheelServo;
     private CRServo leftouttakeServo;
     private CRServo rightouttakeServo;
-    private ColorSensor outtakeSensor;
+    /*private ColorSensor outtakeSensor;*/
 
     private SmartGamepad operator;
     private Telemetry telemetry;
-
-    private double boxExpandedPosition = 0; //Placeholder
-    private double boxRetractedPosition = 0; //Placeholder
 
     private int[] foodARGBColor = {0,0,0,0}; //Placeholder
     private int[] energyARGBColor = {0,0,0,0}; //Placeholder
@@ -35,12 +32,12 @@ public class ConveyorSubsystem implements Subsystem {
 
     @Override
     public void initialize(HardwareMap hardwareMap, Telemetry telemetry) {
-        boxExpansionServo = hardwareMap.get(Servo.class, BOX_EXPANSION_SERVO);
+        boxWheelServo = hardwareMap.get(CRServo.class, BOX_EXPANSION_SERVO);
         leftouttakeServo = hardwareMap.get(CRServo.class, LEFT_OUTTAKE_SERVO);
         rightouttakeServo = hardwareMap.get(CRServo.class, RIGHT_OUTTAKE_SERVO);
-        outtakeSensor = hardwareMap.get(ColorSensor.class, OUTTAKE_SENSOR);
+        /*outtakeSensor = hardwareMap.get(ColorSensor.class, OUTTAKE_SENSOR);*/
 
-        boxExpansionServo.setDirection(Servo.Direction.FORWARD);
+        boxWheelServo.setDirection(CRServo.Direction.FORWARD);
         leftouttakeServo.setDirection(DcMotorSimple.Direction.FORWARD);
         rightouttakeServo.setDirection(DcMotorSimple.Direction.REVERSE);
 
@@ -58,18 +55,9 @@ public class ConveyorSubsystem implements Subsystem {
     public void execute(GamepadManager gamepadManager) {
         operator = gamepadManager.getOperator();
 
-        if(operator.isButtonX()) {
-            expandBox(boxExpandedPosition);
-            telemetry.addData("Box Expansion", "Expanded");
-        }
-        if(operator.isButtonY()) {
-            expandBox(boxRetractedPosition);
-            telemetry.addData("Box Expansion", "Retracted");
-        }
-
         controlOuttake(operator);
 
-        telemetry.addData("Outtake Game Piece", gamePieceColorChecker());
+        /*telemetry.addData("Outtake Game Piece", gamePieceColorChecker());*/
     }
 
     @Override
@@ -77,21 +65,18 @@ public class ConveyorSubsystem implements Subsystem {
 
     }
 
-    private void expandBox(double Position) {
-        boxExpansionServo.setPosition(Position);
-    }
-
     private void controlOuttake(SmartGamepad operator) {
         if (operator.isRightTriggerPressed()){
             leftouttakeServo.setPower(operator.getRightTrigger());
             rightouttakeServo.setPower(operator.getRightTrigger());
+            boxWheelServo.setPower(operator.getRightTrigger());
         } else if(operator.isLeftTriggerPressed()) {
             leftouttakeServo.setPower(-operator.getLeftTrigger());
             rightouttakeServo.setPower(-operator.getLeftTrigger());
         }
     }
 
-    private String gamePieceColorChecker() {
+    /*private String gamePieceColorChecker() {
         if (outtakeSensor.red() > foodARGBColor[0]-30 && outtakeSensor.green() < foodARGBColor[0]+30
         && outtakeSensor.green() > foodARGBColor[1]-30 && outtakeSensor.green() < foodARGBColor[1]+30
         && outtakeSensor.blue() > foodARGBColor[2]-30 && outtakeSensor.green() < foodARGBColor[2]+30){
@@ -107,7 +92,7 @@ public class ConveyorSubsystem implements Subsystem {
         } else {
             return "Without GP";
         }
-    }
+    }*/
 
     public static synchronized ConveyorSubsystem getInstance() {
         if (instance == null) {
