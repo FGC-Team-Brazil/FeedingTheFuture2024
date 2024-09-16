@@ -31,9 +31,7 @@ public class TeleOpMode extends OpMode {
      * Runs the start method of all subsystems
      */
     @Override
-    public void start() {
-        robot.start();
-    }
+    public void start() {robot.start();}
 
     /**
      * Runs the execute method of all subsystems

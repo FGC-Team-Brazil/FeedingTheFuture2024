@@ -1,8 +1,8 @@
 package org.firstinspires.ftc.teamcode.core.lib.autonomousControl;
-//this is done
+
 public class Pose2d {
-    double XPos;
-    double YPos;
+    double xPos;
+    double yPos;
     double head;
     public Pose2d(double xPosition, double yPosition, double heading){
         /*
@@ -10,16 +10,16 @@ public class Pose2d {
         yPosition means the Y axis position relative to the field
         heading means the orientation of the robot in degrees relative to the field
          */
-        XPos = xPosition;
-        YPos = yPosition;
+        xPos = xPosition;
+        yPos = yPosition;
         head = heading;
     }
 
     public double getX(){
-        return XPos;
+        return xPos;
     }
     public double getY(){
-        return YPos;
+        return yPos;
     }
     public double getHeadingRadians(){
         return head;
@@ -29,8 +29,8 @@ public class Pose2d {
     }
 
     public void updatePose(double newX, double newY, double newHead){
-        XPos = newX;
-        YPos = newY;
+        xPos = newX;
+        yPos = newY;
         head = Math.toRadians(newHead);
     }
 
