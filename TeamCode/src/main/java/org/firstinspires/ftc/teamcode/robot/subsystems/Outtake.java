@@ -56,6 +56,17 @@ public class Outtake  implements Subsystem {
                     servoRight.setPosition(1);
                     servoLeft.setPosition(1);
                 });
+
+        if(colorSensor.green() > 100) {
+            operator.ledSetColorContinuous(SmartGamepad.Color.RED);
+        } else if (colorSensor.blue() > 100) {
+            operator.ledSetColorContinuous(SmartGamepad.Color.BLUE);
+        } else {
+            operator.ledSetColorContinuous(SmartGamepad.Color.WHITE);
+        }
+
+        this.telemetry.addData("Outtake Color Sensor", "Red: %d, Green: %d, Blue: %d", colorSensor.red(), colorSensor.green(), colorSensor.blue());
+
     }
 
     public static synchronized Outtake getInstance() {
