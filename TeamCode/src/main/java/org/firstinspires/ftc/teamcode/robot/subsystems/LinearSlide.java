@@ -27,17 +27,14 @@ public class LinearSlide implements Subsystem {
     private DcMotor linearMotorLeft;
     private DcMotor linearMotorRight;
     Map<String ,Double> linearPidPositions = new HashMap<>();
-
-    private SmartGamepad operator;
-    private org.firstinspires.ftc.teamcode.core.lib.pid.PIDController PIDController;
+    
+    private PIDController PIDController;
 
     private LinearSlide() {
     }
 
     /**
      * Initialize method from the Subsystem Interface
-     * @param hardwareMap
-     * @param telemetry
      */
     @Override
     public void initialize(HardwareMap hardwareMap, Telemetry telemetry) {
@@ -55,53 +52,39 @@ public class LinearSlide implements Subsystem {
         PIDController = new PIDController(PID.kP, PID.kI, PID.kD, PID.kF, POSITION);
         PIDController.setTolerance(100);
 
-        linearPidPositions.put("Baixo",5712.0);
-        linearPidPositions.put("Medio",7140.0);
-        linearPidPositions.put("Alto", 8568.0);
+        linearPidPositions.put("Baixo",3300.0);
+        linearPidPositions.put("Medio",4400.0);
+        linearPidPositions.put("Alto", 5050.0);
 
         telemetry.addData("LinearSlide Subsystem", "Initialized");
     }
 
     /**
      * Execute method from the Subsystem Interface
-     * @param gamepadManager
      */
     @Override
     public void execute(GamepadManager gamepadManager) {
         stop();
-        operator = gamepadManager.getOperator();
+        SmartGamepad operator = gamepadManager.getOperator();
 
         telemetry.addData("LinearSlide Subsystem", "Running");
 
-        controlLinearSlide();
-
-        //Mantem posição após o operador soltar o botão
-        linearSlideMotors(PIDController.calculate(linearMotorLeft.getCurrentPosition(),linearMotorLeft.getCurrentPosition()));
-
         operator.whileButtonDPadUp()
                 .run(() -> {
-              linearSlideMotors(PIDController.calculate(linearPidPositions.get("Baixo"), linearMotorLeft.getCurrentPosition()));
+              setPower(PIDController.calculate(linearPidPositions.get("Baixo"), linearMotorLeft.getCurrentPosition()));
                 });
 
         operator.whileButtonDPadDown()
                 .run(() -> {
-                    linearSlideMotors(PIDController.calculate(linearPidPositions.get("Medio"),linearMotorLeft.getCurrentPosition()));
+                    setPower(PIDController.calculate(linearPidPositions.get("Medio"), linearMotorLeft.getCurrentPosition()));
                 });
 
         operator.whileButtonDPadRight()
                 .run(() -> {
-                    linearSlideMotors(PIDController.calculate(linearPidPositions.get("Alto"),linearMotorLeft.getCurrentPosition()));
+                    setPower(PIDController.calculate(linearPidPositions.get("Alto"), linearMotorLeft.getCurrentPosition()));
                 });
-
-        telemetry.addData("MR power", linearMotorRight.getPower());
-        telemetry.addData("ML power", linearMotorLeft.getPower());
-
-        telemetry.addData("MR position", linearMotorLeft.getCurrentPosition());
-        telemetry.addData("ML position", linearMotorLeft.getCurrentPosition());
-
-        telemetry.addData("PIDcalculate", PIDController.calculate(-4100, linearMotorLeft.getCurrentPosition()));
-
-        linearSlideMotors(operator.getLeftStickY());
+        
+        setPower(operator.getLeftStickY());
     }
 
     /**
@@ -122,14 +105,9 @@ public class LinearSlide implements Subsystem {
     }
 
 
-    private void linearSlideMotors(double speed){
+    private void setPower(double speed){
         linearMotorRight.setPower(speed);
         linearMotorLeft.setPower(speed);
-    }
-
-
-    private void controlLinearSlide(){
-            linearSlideMotors(operator.getLeftStickY());
     }
 
 
