@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.core.util;
 
+import org.firstinspires.ftc.robotcore.external.navigation.Quaternion;
+
 public class MathUtils {
     private MathUtils() {}
 
@@ -25,6 +27,25 @@ public class MathUtils {
             wrapedAngle = angle + (multiplier * wrapRange) + wrapRange;
         }
         return wrapedAngle;
+    }
+
+    public static Quaternion quartenionToEuler(double rollX, double pitchY, double yawZ){
+        // Abbreviations for the various angular functions
+
+        double cr = Math.cos(rollX * 0.5);
+        double sr = Math.sin(rollX * 0.5);
+        double cp = Math.cos(pitchY * 0.5);
+        double sp = Math.sin(pitchY * 0.5);
+        double cy = Math.cos(yawZ * 0.5);
+        double sy = Math.sin(yawZ * 0.5);
+
+
+        float w = (float)(cr * cp * cy + sr * sp * sy);
+        float x = (float)(sr * cp * cy - cr * sp * sy);
+        float y = (float)(cr * sp * cy + sr * cp * sy);
+        float z = (float)(cr * cp * sy - sr * sp * cy);
+
+        return new Quaternion(w, x, y, z, 0);
     }
 
     public static double ticksToMeters(double ticks, double ticksPerRevolution, double circumference){
