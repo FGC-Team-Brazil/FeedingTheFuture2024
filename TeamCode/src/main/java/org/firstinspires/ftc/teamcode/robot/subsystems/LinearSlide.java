@@ -1,7 +1,6 @@
 package org.firstinspires.ftc.teamcode.robot.subsystems;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
@@ -26,7 +25,7 @@ public class LinearSlide implements Subsystem {
     private Telemetry telemetry;
     private DcMotor linearMotorLeft;
     private DcMotor linearMotorRight;
-    Map<String ,Double> linearPidPositions = new HashMap<>();
+    Map<String ,Integer> linearPidPositions = new HashMap<>();
     
     private PIDController PIDController;
 
@@ -52,9 +51,9 @@ public class LinearSlide implements Subsystem {
         PIDController = new PIDController(PID.kP, PID.kI, PID.kD, PID.kF, POSITION);
         PIDController.setTolerance(100);
 
-        linearPidPositions.put("Baixo",3300.0);
-        linearPidPositions.put("Medio",4400.0);
-        linearPidPositions.put("Alto", 5050.0);
+        linearPidPositions.put("Baixo",3300);
+        linearPidPositions.put("Medio",4400);
+        linearPidPositions.put("Alto", 5050);
 
         telemetry.addData("LinearSlide Subsystem", "Initialized");
     }
@@ -71,17 +70,17 @@ public class LinearSlide implements Subsystem {
 
         operator.whileButtonDPadUp()
                 .run(() -> {
-              setPower(PIDController.calculate(linearPidPositions.get("Baixo"), linearMotorLeft.getCurrentPosition()));
+              setPower(PIDController.calculate(linearPidPositions.get("Alto"), getAverageEncoders()));
                 });
 
         operator.whileButtonDPadDown()
                 .run(() -> {
-                    setPower(PIDController.calculate(linearPidPositions.get("Medio"), linearMotorLeft.getCurrentPosition()));
+                    setPower(PIDController.calculate(linearPidPositions.get("Baixo"), getAverageEncoders()));
                 });
 
         operator.whileButtonDPadRight()
                 .run(() -> {
-                    setPower(PIDController.calculate(linearPidPositions.get("Alto"), linearMotorLeft.getCurrentPosition()));
+                    setPower(PIDController.calculate(linearPidPositions.get("Medio"), getAverageEncoders()));
                 });
         
         setPower(operator.getLeftStickY());
@@ -110,6 +109,9 @@ public class LinearSlide implements Subsystem {
         linearMotorLeft.setPower(speed);
     }
 
+    private int getAverageEncoders(){
+        return (linearMotorLeft.getCurrentPosition() + linearMotorRight.getCurrentPosition()) / 2;
+    }
 
     /**
      * getInstance is a method used to create a instance of the subsystem.
