@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.robot;
 
 import org.firstinspires.ftc.teamcode.core.lib.interfaces.Subsystem;
+import org.firstinspires.ftc.teamcode.robot.subsystems.WebcamAprilTags;
 import org.firstinspires.ftc.teamcode.robot.subsystems.LinearSlide;
 import org.firstinspires.ftc.teamcode.robot.subsystems.XDrive;
 
@@ -16,6 +17,7 @@ public class RobotSubsystems {
     private static final Subsystem[] subsystems = {
             LinearSlide.getInstance(),
             XDrive.getInstance(),
+            WebcamAprilTags.getInstance()
     };
 
     /**

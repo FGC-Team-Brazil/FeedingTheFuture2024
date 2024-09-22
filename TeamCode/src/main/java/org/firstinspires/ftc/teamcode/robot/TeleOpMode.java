@@ -4,6 +4,9 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.core.lib.Robot;
+import org.firstinspires.ftc.teamcode.core.lib.autonomousControl.Pose2d;
+import org.firstinspires.ftc.teamcode.robot.subsystems.WebcamAprilTags;
+import org.firstinspires.ftc.teamcode.robot.subsystems.XDrive;
 
 /**
  * TeleOp class template for building TeleOp modes.
@@ -28,17 +31,13 @@ public class TeleOpMode extends OpMode {
      * Runs the start method of all subsystems
      */
     @Override
-    public void start() {
-        robot.start();
-    }
+    public void start() {robot.start();}
 
     /**
      * Runs the execute method of all subsystems
      */
     @Override
-    public void loop() {
-        robot.loop();
-    }
+    public void loop() {robot.loop();}
 
     /**
      * Runs the stop method of all subsystems

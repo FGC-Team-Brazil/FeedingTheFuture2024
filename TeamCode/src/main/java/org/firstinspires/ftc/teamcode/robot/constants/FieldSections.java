@@ -1,0 +1,13 @@
+package org.firstinspires.ftc.teamcode.robot.constants;
+
+public enum FieldSections {
+    BLUE_ALLIANCE_SIDE_3_NEXUSES,
+    BLUE_MIDDLE_3_NEXUSES,
+    RED_ALLIANCE_SIDE_3_NEXUSES,
+    RED_MIDDLE_3_NEXUSES,
+    BLUE_BACKWARDS_NEXUSES,
+    RED_BACKWARDS_NEXUSES,
+    BLUE_PLATAFORM_NEXUSES,
+    RED_PLATAFORM_NEXUSES,
+    UNKNOWN_SECTION
+}
