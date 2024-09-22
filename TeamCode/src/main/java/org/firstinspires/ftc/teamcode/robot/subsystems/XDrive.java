@@ -8,13 +8,13 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
-
 import com.qualcomm.robotcore.hardware.IMU;
-
-
+import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
+import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
-
 import org.firstinspires.ftc.teamcode.core.lib.autonomousControl.MotorVelocityData;
 import org.firstinspires.ftc.teamcode.core.lib.autonomousControl.Pose2d;
 
@@ -23,57 +23,66 @@ import org.firstinspires.ftc.teamcode.core.lib.gamepad.SmartGamepad;
 import org.firstinspires.ftc.teamcode.core.lib.interfaces.Subsystem;
 import org.firstinspires.ftc.teamcode.core.lib.pid.PIDController;
 import org.firstinspires.ftc.teamcode.robot.constants.AutonomousConstants;
-import org.firstinspires.ftc.teamcode.robot.constants.DrivetrainBuilderConstants;
 import org.firstinspires.ftc.teamcode.robot.constants.DrivetrainState;
 import org.firstinspires.ftc.teamcode.robot.constants.XDriveConstants;
-import org.opencv.core.Mat;
+import org.firstinspires.ftc.teamcode.core.util.MathUtils;
 
 public class XDrive implements Subsystem {
     public DrivetrainState currentDriveState = DrivetrainState.MANUAL_CONTROL;
     private  Telemetry telemetry;
+    private SmartGamepad driver;
     private static XDrive instance;
+
     private double reset_angle = 0;
-    private DcMotor front_left = null;
-    private DcMotor back_left = null;
-    private DcMotor back_right = null;
-    private DcMotor front_right = null;
-    private IMU imu;
-
-
     private PIDController XpositionPID=AutonomousConstants.stopAtPointPID;
     private PIDController YpositionPID=AutonomousConstants.stopAtPointPID;
     private PIDController HpositionPID=AutonomousConstants.stopAtPointPID;
 
     Pose2d currentPose = START_POSITION;
     private int prevFLTicks1 = 0,prevFRTicks1 = 0,prevBLTicks1 = 0,prevBRTicks1 = 0,prevFLTicks2 = 0,prevFRTicks2 = 0,prevBLTicks2 = 0,prevBRTicks2 = 0;
+    private DcMotor frontLeft;
+    private DcMotor backLeft;
+    private DcMotor backRight;
+    private DcMotor frontRight;
+    private IMU imu;
+
 
     private XDrive() {
     }
 
     @Override
     public void initialize(HardwareMap hardwareMap, Telemetry telemetry) {
-        front_left = hardwareMap.dcMotor.get(MOTOR_FRONT_LEFT);
-        back_left = hardwareMap.dcMotor.get(MOTOR_BACK_LEFT);
-        back_right = hardwareMap.dcMotor.get(MOTOR_BACK_RIGHT);
-        front_right = hardwareMap.dcMotor.get(MOTOR_FRONT_RIGHT);
+        frontLeft = hardwareMap.dcMotor.get(MOTOR_FRONT_LEFT);
+        backLeft = hardwareMap.dcMotor.get(MOTOR_BACK_LEFT);
+        backRight = hardwareMap.dcMotor.get(MOTOR_BACK_RIGHT);
+        frontRight = hardwareMap.dcMotor.get(MOTOR_FRONT_RIGHT);
 
-        front_left.setDirection(DcMotor.Direction.REVERSE);
-        back_left.setDirection(DcMotor.Direction.REVERSE);
-        front_right.setDirection(DcMotor.Direction.FORWARD);
-        back_right.setDirection(DcMotor.Direction.FORWARD);
+        frontLeft.setDirection(DcMotor.Direction.REVERSE);
+        backLeft.setDirection(DcMotor.Direction.REVERSE);
+        frontRight.setDirection(DcMotor.Direction.FORWARD);
+        backRight.setDirection(DcMotor.Direction.FORWARD);
 
-        front_left.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        back_left.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        front_right.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        back_right.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        frontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        backLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        frontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        backRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         this.telemetry = telemetry;
 
+
+        RevHubOrientationOnRobot robotOrientation = new RevHubOrientationOnRobot(
+                RevHubOrientationOnRobot.LogoFacingDirection.DOWN,
+                RevHubOrientationOnRobot.UsbFacingDirection.FORWARD
+        );
+        
         imu = hardwareMap.get(IMU.class, "imu");
+        IMU.Parameters parameters = new IMU.Parameters(robotOrientation);
+        imu.initialize(parameters);
     }
 
     @Override
     public void start() {
+        imu.resetYaw();
     }
 
     @Override
@@ -97,10 +106,26 @@ public class XDrive implements Subsystem {
     }
 
     public void drive(SmartGamepad driver) {
-        double rotate =  -driver.getRightStickX();
+        double rotate =  -driver.getRightStickX()/3;
         double stick_x = driver.getLeftStickX();
         double stick_y = driver.getLeftStickY();
-
+        
+        driver.whileButtonDPadUp().run(
+                () -> {
+                    stick_y.set(-1.0);}
+        );
+        driver.whileButtonDPadDown().run(
+                () -> {stick_y.set(1.0);}
+        );
+        driver.whileButtonDPadLeft().run(
+                () -> {stick_x.set(-1.0);}
+        );
+        driver.whileButtonDPadRight().run(
+                () -> {
+                    stick_x.set(1.0);}
+        );
+        
+      
         double Px = 0;
         double Py = 0;
 
@@ -117,11 +142,19 @@ public class XDrive implements Subsystem {
         double fR = (Py - Px - rotate) * 0.8 / divisor;
         double bL = (Py - Px + rotate) * 0.8 / divisor;
         double bR = (Py + Px - rotate) * 0.8 / divisor;
-
-        front_left.setPower(fL);
-        back_left.setPower(bL);
-        back_right.setPower(bR);
-        front_right.setPower(fR);
+      
+        telemetry.addData("Stick_X", stick_x);
+        telemetry.addData("Stick_Y", stick_y);
+        telemetry.addData("imu", imu.getRobotOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES).firstAngle);
+        telemetry.addData("Front Left",fL);
+        telemetry.addData("Back Left", bL);
+        telemetry.addData("Back Right", bR);
+        telemetry.addData("Front Right", fR);
+      
+        frontLeft.setPower(fL);
+        backLeft.setPower(bL);
+        backRight.setPower(bR);
+        frontRight.setPower(fR);
     }
     private double capGyroAngle(double gyroAngle){
         if (gyroAngle <= 0) {
@@ -136,7 +169,7 @@ public class XDrive implements Subsystem {
 
     public void resetAngle(SmartGamepad driver){
         if(driver.isButtonA()){
-            reset_angle = getHeading() + reset_angle;
+            imu.resetYaw();
         }
     }
 
@@ -160,10 +193,10 @@ public class XDrive implements Subsystem {
         return instance;
     }
     public void setPower(double FLSpeed,double FRSpeed,double BLSpeed,double BRSpeed){
-        front_left.setPower(FLSpeed);
-        front_right.setPower(FRSpeed);
-        back_left.setPower(BLSpeed);
-        back_right.setPower(BRSpeed);
+        frontLeft.setPower(FLSpeed);
+        frontRight.setPower(FRSpeed);
+        backLeft.setPower(BLSpeed);
+        backRight.setPower(BRSpeed);
     }
 
     public void alignAtTag(Pose2d tagPosition,SmartGamepad driver){
