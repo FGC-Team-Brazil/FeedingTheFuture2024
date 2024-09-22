@@ -2,7 +2,6 @@ package org.firstinspires.ftc.teamcode.robot.subsystems;
 
 import static org.firstinspires.ftc.teamcode.robot.constants.XDriveConstants.*;
 
-import androidx.annotation.NonNull;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -10,7 +9,6 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
-import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
@@ -25,7 +23,8 @@ import org.firstinspires.ftc.teamcode.core.lib.pid.PIDController;
 import org.firstinspires.ftc.teamcode.robot.constants.AutonomousConstants;
 import org.firstinspires.ftc.teamcode.robot.constants.DrivetrainState;
 import org.firstinspires.ftc.teamcode.robot.constants.XDriveConstants;
-import org.firstinspires.ftc.teamcode.core.util.MathUtils;
+
+import java.util.concurrent.atomic.AtomicReference;
 
 public class XDrive implements Subsystem {
     public DrivetrainState currentDriveState = DrivetrainState.MANUAL_CONTROL;
@@ -107,8 +106,8 @@ public class XDrive implements Subsystem {
 
     public void drive(SmartGamepad driver) {
         double rotate =  -driver.getRightStickX()/3;
-        double stick_x = driver.getLeftStickX();
-        double stick_y = driver.getLeftStickY();
+        AtomicReference<Double> stick_x = new AtomicReference<>(driver.getLeftStickX() * Math.sqrt(Math.pow(1 - Math.abs(rotate), 2) / 2));
+        AtomicReference<Double> stick_y = new AtomicReference<>(driver.getLeftStickY() * Math.sqrt(Math.pow(1 - Math.abs(rotate), 2) / 2));
         
         driver.whileButtonDPadUp().run(
                 () -> {
@@ -133,8 +132,8 @@ public class XDrive implements Subsystem {
         gyroAngle = capGyroAngle(gyroAngle);
 
         //MOVEMENT
-        Py = stick_x * Math.cos(gyroAngle) + stick_y * Math.sin(gyroAngle);
-        Px = stick_x * Math.sin(-gyroAngle) + stick_y * Math.cos(-gyroAngle);
+        Py = stick_x.get() * Math.cos(gyroAngle) + stick_y.get() * Math.sin(gyroAngle);
+        Px = stick_x.get() * Math.sin(-gyroAngle) + stick_y.get() * Math.cos(-gyroAngle);
 
         double maxValue = Math.abs(Px)+Math.abs(Py)+Math.abs(rotate);
         double divisor = Math.max(maxValue,1);
@@ -244,24 +243,24 @@ public class XDrive implements Subsystem {
                 currentPose.getHeadingRadians() + dtheta);
     }
     public Pose2d wheelToRobotVelocities() {
-        double frontLeft = (front_left.getCurrentPosition()-prevFLTicks1)*AutonomousConstants.TICK_TO_CM_CONVERSION_VALUE;
-        double rearLeft = (back_left.getCurrentPosition()-prevBLTicks1)*AutonomousConstants.TICK_TO_CM_CONVERSION_VALUE;
-        double rearRight = (back_right.getCurrentPosition()-prevBRTicks1)*AutonomousConstants.TICK_TO_CM_CONVERSION_VALUE;
-        double frontRight = (front_right.getCurrentPosition()-prevFRTicks1)*AutonomousConstants.TICK_TO_CM_CONVERSION_VALUE;
+        double frontLeftPos = (frontLeft.getCurrentPosition()-prevFLTicks1)*AutonomousConstants.TICK_TO_CM_CONVERSION_VALUE;
+        double rearLeftPos = (backLeft.getCurrentPosition()-prevBLTicks1)*AutonomousConstants.TICK_TO_CM_CONVERSION_VALUE;
+        double rearRightPos = (backRight.getCurrentPosition()-prevBRTicks1)*AutonomousConstants.TICK_TO_CM_CONVERSION_VALUE;
+        double frontRightPos = (frontRight.getCurrentPosition()-prevFRTicks1)*AutonomousConstants.TICK_TO_CM_CONVERSION_VALUE;
 
         prevFLTicks2 = prevFLTicks1;
         prevFRTicks2 = prevFRTicks1;
         prevBRTicks2 = prevBRTicks1;
         prevBLTicks2 = prevBLTicks1;
 
-        prevFLTicks1 = front_left.getCurrentPosition();
-        prevFRTicks1 = front_right.getCurrentPosition();
-        prevBLTicks1 = back_left.getCurrentPosition();
-        prevBRTicks1 = back_right.getCurrentPosition();
+        prevFLTicks1 = frontLeft.getCurrentPosition();
+        prevFRTicks1 = frontRight.getCurrentPosition();
+        prevBLTicks1 = backLeft.getCurrentPosition();
+        prevBRTicks1 = backRight.getCurrentPosition();
 
         return new Pose2d(
-                frontLeft+frontRight+rearLeft+rearRight/4,
-                (rearLeft + frontRight - frontLeft - rearRight)/4,
+                frontLeftPos+frontRightPos+rearLeftPos+rearRightPos/4,
+                (rearLeftPos + frontRightPos - frontLeftPos - rearRightPos)/4,
                 imu.getRobotAngularVelocity(AngleUnit.DEGREES).zRotationRate*1
         );
     }
