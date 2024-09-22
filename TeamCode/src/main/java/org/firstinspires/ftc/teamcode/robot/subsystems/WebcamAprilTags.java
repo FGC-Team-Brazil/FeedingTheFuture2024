@@ -32,9 +32,6 @@ public class WebcamAprilTags implements Subsystem {
     private Telemetry telemetry;
     private static AprilTagProcessor aprilTag;
     static double actualHead;
-    private static double xTrans;
-    private static double yTrans;
-    private FieldSections currentSection = FieldSections.UNKNOWN_SECTION;
     private static VisionPortal visionPortal;
     public static AprilTagLibrary getFeedingTheFutureTagLibrary() {
         return (new Builder())
@@ -57,10 +54,10 @@ public class WebcamAprilTags implements Subsystem {
 
         List<AprilTagDetection> currentDetections = aprilTag.getDetections();
         FieldSections section = FieldSections.UNKNOWN_SECTION;
-        currentSection = FieldSections.UNKNOWN_SECTION;
+        FieldSections currentSection = FieldSections.UNKNOWN_SECTION;
 
         // Step through the list of detections and display info for each one.
-        if (currentDetections.size() > 0) {
+        if (!currentDetections.isEmpty()) {
             double distX = 0;
             double distY = 0;
             double avgHead = 0;
@@ -95,13 +92,13 @@ public class WebcamAprilTags implements Subsystem {
                     }
                     actualHead = -(detection.ftcPose.yaw - detection.ftcPose.bearing);
                     double actualRange = (Math.cos(detection.ftcPose.elevation+Math.toRadians(CAM_ANGLE_TO_GROUND))*detection.ftcPose.range);
-                    yTrans = Math.sin(Math.toRadians(actualHead)) * actualRange;
-                    xTrans = Math.cos(Math.toRadians(actualHead)) * actualRange;
+                    double yTrans = Math.sin(Math.toRadians(actualHead)) * actualRange;
+                    double xTrans = Math.cos(Math.toRadians(actualHead)) * actualRange;
 
 
 
                     telemetry.addLine(String.format("\n==== (ID %d) %s", detection.id, detection.metadata.name));
-                    telemetry.addLine(String.format("Xtrans %6.1f Ytrans %6.1f",xTrans,yTrans));
+                    telemetry.addLine(String.format("X trans %6.1f Y trans %6.1f", xTrans, yTrans));
                     telemetry.addLine(String.format("CAM FIELD XY %6.1f %6.1f", xTrans, yTrans));
                     telemetry.addLine(String.format("RBE %6.1f %6.1f %6.1f  (cm, deg, deg)", detection.ftcPose.range, detection.ftcPose.bearing, detection.ftcPose.elevation));
 
