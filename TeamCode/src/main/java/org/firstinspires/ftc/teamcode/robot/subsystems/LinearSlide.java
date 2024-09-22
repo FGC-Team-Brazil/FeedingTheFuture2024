@@ -1,7 +1,9 @@
 package org.firstinspires.ftc.teamcode.robot.subsystems;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.TouchSensor;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
@@ -28,7 +30,7 @@ public class LinearSlide implements Subsystem {
     Map<String ,Integer> linearPidPositions = new HashMap<>();
     
     private PIDController PIDController;
-
+    private TouchSensor limitSensor;
     private LinearSlide() {
     }
 
@@ -39,9 +41,12 @@ public class LinearSlide implements Subsystem {
     public void initialize(HardwareMap hardwareMap, Telemetry telemetry) {
         linearMotorRight = hardwareMap.get(DcMotor.class, LIFT_MOTOR_RIGHT);
         linearMotorLeft = hardwareMap.get(DcMotor.class, LIFT_MOTOR_LEFT);
-        linearMotorLeft.setDirection(DcMotor.Direction.REVERSE);
-        linearMotorRight.setDirection(DcMotor.Direction.FORWARD);
+        linearMotorLeft.setDirection(DcMotor.Direction.FORWARD);
+        linearMotorRight.setDirection(DcMotor.Direction.REVERSE);
         this.telemetry = telemetry;
+
+        linearMotorRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        linearMotorLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         linearMotorLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         linearMotorRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -53,7 +58,9 @@ public class LinearSlide implements Subsystem {
 
         linearPidPositions.put("Baixo",3300);
         linearPidPositions.put("Medio",4400);
-        linearPidPositions.put("Alto", 5050);
+        linearPidPositions.put("Alto", 4900);
+
+        limitSensor = hardwareMap.get(TouchSensor.class, LIFT_LIMIT_DOWN);
 
         telemetry.addData("LinearSlide Subsystem", "Initialized");
     }
@@ -63,27 +70,40 @@ public class LinearSlide implements Subsystem {
      */
     @Override
     public void execute(GamepadManager gamepadManager) {
-        stop();
         SmartGamepad operator = gamepadManager.getOperator();
 
         telemetry.addData("LinearSlide Subsystem", "Running");
 
+        if(Math.abs(operator.getLeftStickY()) > 0.1){
+            if(limitSensor.isPressed() && operator.getLeftStickY() < 0){
+                setPower(0);
+            } else {
+                setPower(operator.getLeftStickY());
+            }
+            //fixedPosition = getAverageEncoders();
+        } else {
+            //setPower(-PIDController.calculate(fixedPosition, getAverageEncoders()));
+            stop();
+        }
         operator.whileButtonDPadUp()
                 .run(() -> {
-              setPower(PIDController.calculate(linearPidPositions.get("Alto"), getAverageEncoders()));
+              setPower(-PIDController.calculate(linearPidPositions.get("Alto"), getAverageEncoders()));
                 });
 
         operator.whileButtonDPadDown()
                 .run(() -> {
-                    setPower(PIDController.calculate(linearPidPositions.get("Baixo"), getAverageEncoders()));
+                    setPower(-PIDController.calculate(linearPidPositions.get("Baixo"), getAverageEncoders()));
                 });
 
         operator.whileButtonDPadRight()
                 .run(() -> {
-                    setPower(PIDController.calculate(linearPidPositions.get("Medio"), getAverageEncoders()));
+                    setPower(-PIDController.calculate(linearPidPositions.get("Medio"), getAverageEncoders()));
                 });
         
-        setPower(operator.getLeftStickY());
+
+        telemetry.addData("Linear: Limit sensor", limitSensor.isPressed());
+        telemetry.addData("Linear: Encoder", getAverageEncoders());
+        telemetry.addData("Linear: High PID", -PIDController.calculate(linearPidPositions.get("Alto"), getAverageEncoders()));
     }
 
     /**

@@ -17,7 +17,7 @@ public class RobotSubsystems {
     private static final Subsystem[] subsystems = {
             LinearSlide.getInstance(),
             XDrive.getInstance(),
-            WebcamAprilTags.getInstance()
+            /*WebcamAprilTags.getInstance()*/
     };
 
     /**

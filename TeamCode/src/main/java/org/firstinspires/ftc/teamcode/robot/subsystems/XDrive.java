@@ -12,6 +12,7 @@ import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 import org.firstinspires.ftc.teamcode.core.lib.autonomousControl.MotorVelocityData;
 import org.firstinspires.ftc.teamcode.core.lib.autonomousControl.Pose2d;
@@ -20,6 +21,7 @@ import org.firstinspires.ftc.teamcode.core.lib.gamepad.GamepadManager;
 import org.firstinspires.ftc.teamcode.core.lib.gamepad.SmartGamepad;
 import org.firstinspires.ftc.teamcode.core.lib.interfaces.Subsystem;
 import org.firstinspires.ftc.teamcode.core.lib.pid.PIDController;
+import org.firstinspires.ftc.teamcode.core.util.MathUtils;
 import org.firstinspires.ftc.teamcode.robot.constants.AutonomousConstants;
 import org.firstinspires.ftc.teamcode.robot.constants.DrivetrainState;
 import org.firstinspires.ftc.teamcode.robot.constants.XDriveConstants;
@@ -90,11 +92,13 @@ public class XDrive implements Subsystem {
 
     @Override
     public void execute(GamepadManager gamepadManager) {
-        currentDriveState=controlDriveState(gamepadManager.getDriver());
+        /*currentDriveState=controlDriveState(gamepadManager.getDriver());
         if (currentDriveState == DrivetrainState.MANUAL_CONTROL) {
             drive(gamepadManager.getDriver());
             resetAngle(gamepadManager.getDriver());
-        }
+        }*/
+       drive(gamepadManager.getDriver());
+       resetAngle(gamepadManager.getDriver());
     }
     public DrivetrainState controlDriveState(SmartGamepad driver){
         if (Math.abs(driver.getLeftStickY())> XDriveConstants.APRIL_TAG_BREAK_TOLERANCE ||Math.abs(driver.getRightStickX())>XDriveConstants.APRIL_TAG_BREAK_TOLERANCE){
@@ -105,10 +109,14 @@ public class XDrive implements Subsystem {
     }
 
     public void drive(SmartGamepad driver) {
-        double rotate =  -driver.getRightStickX()/3;
+        double rotate = driver.getRightStickX()/4;
         AtomicReference<Double> stick_x = new AtomicReference<>(driver.getLeftStickX() * Math.sqrt(Math.pow(1 - Math.abs(rotate), 2) / 2));
         AtomicReference<Double> stick_y = new AtomicReference<>(driver.getLeftStickY() * Math.sqrt(Math.pow(1 - Math.abs(rotate), 2) / 2));
-        
+        double theta;
+        double pX;
+        double pY;
+        double gyroAngle = -getHeading();
+
         driver.whileButtonDPadUp().run(
                 () -> {
                     stick_y.set(-1.0);}
@@ -123,37 +131,43 @@ public class XDrive implements Subsystem {
                 () -> {
                     stick_x.set(1.0);}
         );
-        
-      
-        double Px = 0;
-        double Py = 0;
-
-        double gyroAngle = getHeading() * Math.PI / 180;
-        gyroAngle = capGyroAngle(gyroAngle);
 
         //MOVEMENT
-        Py = stick_x.get() * Math.cos(gyroAngle) + stick_y.get() * Math.sin(gyroAngle);
-        Px = stick_x.get() * Math.sin(-gyroAngle) + stick_y.get() * Math.cos(-gyroAngle);
+        theta = Math.atan2(stick_y.get(), stick_x.get()) - gyroAngle - (Math.PI / 2);
+        pX = Math.sqrt(Math.pow(stick_x.get(), 2) + Math.pow(stick_y.get(), 2)) * (Math.sin(theta + Math.PI / 4));
+        pY = Math.sqrt(Math.pow(stick_x.get(), 2) + Math.pow(stick_y.get(), 2)) * (Math.sin(theta - Math.PI / 4));
 
-        double maxValue = Math.abs(Px)+Math.abs(Py)+Math.abs(rotate);
-        double divisor = Math.max(maxValue,1);
-        double fL = (Py + Px + rotate) * 0.8 / divisor;
-        double fR = (Py - Px - rotate) * 0.8 / divisor;
-        double bL = (Py - Px + rotate) * 0.8 / divisor;
-        double bR = (Py + Px - rotate) * 0.8 / divisor;
-      
         telemetry.addData("Stick_X", stick_x);
         telemetry.addData("Stick_Y", stick_y);
         telemetry.addData("imu", imu.getRobotOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES).firstAngle);
-        telemetry.addData("Front Left",fL);
-        telemetry.addData("Back Left", bL);
-        telemetry.addData("Back Right", bR);
-        telemetry.addData("Front Right", fR);
-      
-        frontLeft.setPower(fL);
-        backLeft.setPower(bL);
-        backRight.setPower(bR);
-        frontRight.setPower(fR);
+        telemetry.addData("Front Left", pY - rotate);
+        telemetry.addData("Back Left", pX - rotate);
+        telemetry.addData("Back Right", pY + rotate);
+        telemetry.addData("Front Right", pX + rotate);
+
+        frontLeft.setPower(pY - rotate);
+        backLeft.setPower(pX - rotate);
+        backRight.setPower(pY + rotate);
+        frontRight.setPower(pX + rotate);
+    }
+
+    public void resetAngle(SmartGamepad driver){
+        if(driver.isButtonA()){
+            imu.resetYaw();
+        }
+    }
+
+    public double getHeading(){
+        Orientation angles = imu.getRobotOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+        double gyroAngle = MathUtils.degreesToRadians(angles.firstAngle);
+        if (gyroAngle <= 0) {
+            gyroAngle = gyroAngle + (Math.PI / 2);
+        } else if (0 < gyroAngle && gyroAngle < Math.PI / 2) {
+            gyroAngle = gyroAngle + (Math.PI / 2);
+        } else if (Math.PI / 2 <= gyroAngle) {
+            gyroAngle = gyroAngle - (3 * Math.PI / 2);
+        }
+        return gyroAngle;
     }
     private double capGyroAngle(double gyroAngle){
         if (gyroAngle <= 0) {
@@ -164,25 +178,6 @@ public class XDrive implements Subsystem {
             gyroAngle = gyroAngle - (3 * Math.PI / 2);
         }
         return gyroAngle;
-    }
-
-    public void resetAngle(SmartGamepad driver){
-        if(driver.isButtonA()){
-            imu.resetYaw();
-        }
-    }
-
-    public double getHeading(){
-        YawPitchRollAngles angles = imu.getRobotYawPitchRollAngles();
-        double heading = angles.getYaw(AngleUnit.DEGREES);
-        if(heading < -180) {
-            heading = heading + 360;
-        }
-        else if(heading > 180){
-            heading = heading - 360;
-        }
-        heading = heading - reset_angle;
-        return heading;
     }
 
     public static synchronized XDrive getInstance() {
